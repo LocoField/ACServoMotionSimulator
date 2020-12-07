@@ -13,7 +13,7 @@ int ACServoMotorSerial::checkCompleteData(const std::vector<unsigned char>& data
 
 bool ACServoMotorSerial::connect(QString portName, int numMotors)
 {
-	if (__super::connect(portName, 115200, QSerialPort::OddParity, QSerialPort::OneStop) == false)
+	if (__super::connect(portName, 57600, QSerialPort::OddParity, QSerialPort::OneStop) == false)
 	{
 		printf("ERROR: motor connect failed\n");
 
