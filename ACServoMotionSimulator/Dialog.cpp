@@ -2,14 +2,13 @@
 #include "Dialog.h"
 #include "ACServoMotorHelper.h"
 
-#include <QtWidgets/QMenuBar>
-
 #define DIALOG_TITLE "Motion Simulator by Hotas 4"
 
 Dialog::Dialog()
 {
-	initialize();
 	loadOption();
+
+	initialize();
 }
 
 Dialog::~Dialog()
@@ -41,14 +40,46 @@ void Dialog::initialize()
 			auto buttonConnect = new QPushButton("Connect");
 			buttonConnect->setFocusPolicy(Qt::FocusPolicy::NoFocus);
 			buttonConnect->setCheckable(true);
-			buttonConnect->setFixedWidth(100);
+			buttonConnect->setFixedWidth(150);
 			buttonConnect->setFixedHeight(100);
 
-			auto buttonMoveCenter = new QPushButton("Motor\n\nInitialize");
+			auto buttonMoveCenter = new QPushButton("Motor Initialize");
 			buttonMoveCenter->setFocusPolicy(Qt::FocusPolicy::NoFocus);
 			buttonMoveCenter->setCheckable(true);
-			buttonMoveCenter->setFixedWidth(100);
+			buttonMoveCenter->setFixedWidth(150);
 			buttonMoveCenter->setFixedHeight(100);
+
+			auto layoutLabels = new QVBoxLayout;
+			{
+				auto labelMotorSpeed = new QLabel("Speed\t: ");
+
+				layoutLabels->addWidget(labelMotorSpeed);
+
+				for (int i = 0; i < numMotors; i++)
+				{
+					auto labelMotorPosition = new QLabel(QString("Motor %1\t: ").arg(i + 1));
+
+					layoutLabels->addWidget(labelMotorPosition);
+				}
+			}
+
+			auto layoutValues = new QVBoxLayout;
+			{
+				auto valueMotorSpeed = new QLabel(QString::number(speed));
+				valueMotorSpeed->setAlignment(Qt::AlignVCenter | Qt::AlignRight);
+
+				layoutValues->addWidget(valueMotorSpeed);
+
+				for (int i = 0; i < numMotors; i++)
+				{
+					auto valueMotorPosition = new QLabel("0");
+					valueMotorPosition->setObjectName(QString("valueMotorPosition%1").arg(i));
+					valueMotorPosition->setAlignment(Qt::AlignVCenter | Qt::AlignRight);
+					valueMotorPosition->setFixedWidth(100);
+
+					layoutValues->addWidget(valueMotorPosition);
+				}
+			}
 
 			connect(buttonConnect, &QPushButton::toggled, [this, buttonConnect](bool checked)
 			{
@@ -106,6 +137,8 @@ void Dialog::initialize()
 			layout->setAlignment(Qt::AlignLeft);
 			layout->addWidget(buttonConnect);
 			layout->addWidget(buttonMoveCenter);
+			layout->addLayout(layoutLabels);
+			layout->addLayout(layoutValues);
 
 			groupBox->setLayout(layout);
 		}
@@ -118,6 +151,13 @@ void Dialog::initialize()
 		controllerLayout->addWidget(groupBox);
 
 		{
+			auto listMotionSource = new QListWidget;
+			listMotionSource->setObjectName("listMotionSource");
+			listMotionSource->setFixedWidth(200);
+			listMotionSource->setFixedHeight(100);
+			listMotionSource->addItem("Keyboard"); // default
+			listMotionSource->setCurrentRow(0);
+
 			auto buttonStart = new QPushButton("Start");
 			buttonStart->setFocusPolicy(Qt::FocusPolicy::NoFocus);
 			buttonStart->setCheckable(true);
@@ -128,16 +168,19 @@ void Dialog::initialize()
 			{
 				if (checked)
 				{
+					buttonStart->setText("Stop");
 					timerUpdateUI->start();
 				}
 				else
 				{
+					buttonStart->setText("Start");
 					timerUpdateUI->stop();
 				}
 			});
 
 			auto layout = new QHBoxLayout;
 			layout->setAlignment(Qt::AlignLeft);
+			layout->addWidget(listMotionSource);
 			layout->addWidget(buttonStart);
 
 			groupBox->setLayout(layout);
@@ -159,7 +202,7 @@ void Dialog::initialize()
 
 	QMenu* menuView = new QMenu("Option");
 	{
-		QAction* actionLoadOption = new QAction("Load Option");
+		QAction* actionLoadOption = new QAction("Load");
 		connect(actionLoadOption, &QAction::triggered, [&]()
 		{
 			loadOption();
@@ -220,6 +263,7 @@ bool Dialog::loadOption()
 	}
 	else
 	{
+		printf("ERROR: loatOption() failed.\n");
 		retval = false;
 	}
 

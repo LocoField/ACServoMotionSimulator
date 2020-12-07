@@ -15,6 +15,7 @@
 #include <fstream>
 
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QMenuBar>
 #include <QtWidgets/QDialog>
 #include <QtWidgets/QBoxLayout>
 #include <QtWidgets/QGroupBox>
@@ -22,6 +23,7 @@
 #include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QCheckBox>
 #include <QtWidgets/QLabel>
+#include <QtWidgets/QListWidget>
 
 #include <QtGui/QKeyEvent>
 
