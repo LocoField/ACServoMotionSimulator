@@ -1,14 +1,17 @@
 #include "stdafx.h"
 #include "Dialog.h"
 #include "ACServoMotorHelper.h"
+#include "ACServoMotionKeyboard.h"
 
-#define DIALOG_TITLE "Motion Simulator by Hotas 4"
+#define DIALOG_TITLE "LocoField Motion Simulator"
 
 Dialog::Dialog()
 {
 	loadOption();
 
 	initialize();
+
+	addMotionModules();
 }
 
 Dialog::~Dialog()
@@ -19,15 +22,83 @@ void Dialog::initialize()
 {
 	installEventFilter(this);
 
-	timerUpdateUI = new QTimer;
-	connect(timerUpdateUI, &QTimer::timeout, [this]()
+	motionTimer = new QTimer;
+	connect(motionTimer, &QTimer::timeout, [this]()
 	{
-		if (needUpdateUI)
-			updateUI();
+		Axis axis;
 
-		
+		if (motionSource)
+		{
+			Sleep(motionSource->getWaitTime());
 
-		needUpdateUI = false;
+			if (motionSource->process(this) == false)
+				return;
+
+			motionSource->position(axis);
+		}
+
+		printf("%f %f\n", axis.roll, axis.pitch);
+
+		if (motor.isConnected() == false)
+			return;
+
+		for (int i = 0; i < numMotors; i++)
+		{
+			bool moving = true;
+
+			motor.position(i, currentPositions[i], moving);
+			currentPositions[i] *= sign;
+		}
+
+		updateUI();
+
+
+		std::vector<int> cycleValues(numMotors);
+
+		if (numMotors == 2)
+		{
+			std::vector<int> desirePosition = centerPositions;
+
+			desirePosition[0] += (axis.roll * angle * sign);
+			desirePosition[1] -= (axis.roll * angle * sign);
+			desirePosition[0] -= (axis.pitch * angle * sign);
+			desirePosition[1] -= (axis.pitch * angle * sign);
+
+			cycleValues[0] += (desirePosition[0] - currentPositions[0]);
+			cycleValues[1] += (desirePosition[1] - currentPositions[1]);
+		}
+		else if (numMotors == 4)
+		{
+			std::vector<int> desirePosition = centerPositions;
+
+			desirePosition[0] += (axis.roll * angle * sign);
+			desirePosition[1] += (axis.roll * angle * sign);
+			desirePosition[2] -= (axis.roll * angle * sign);
+			desirePosition[3] -= (axis.roll * angle * sign);
+
+			desirePosition[0] += (axis.pitch * angle * sign);
+			desirePosition[1] += (axis.pitch * angle * sign);
+			desirePosition[2] -= (axis.pitch * angle * sign);
+			desirePosition[3] -= (axis.pitch * angle * sign);
+
+			cycleValues[0] += (desirePosition[0] - currentPositions[0]);
+			cycleValues[1] += (desirePosition[1] - currentPositions[1]);
+			cycleValues[2] += (desirePosition[2] - currentPositions[2]);
+			cycleValues[3] += (desirePosition[3] - currentPositions[3]);
+		}
+
+		for (int i = 0; i < numMotors; i++)
+		{
+			int position = cycleValues[i];
+
+			if (currentPositions[i] + position < 0 ||
+				currentPositions[i] + position >= limitPositions[i])
+				position = 0;
+
+			motor.setPosition(position, i, false);
+		}
+
+		motor.trigger();
 	});
 
 	{
@@ -155,8 +226,6 @@ void Dialog::initialize()
 			listMotionSource->setObjectName("listMotionSource");
 			listMotionSource->setFixedWidth(200);
 			listMotionSource->setFixedHeight(100);
-			listMotionSource->addItem("Keyboard"); // default
-			listMotionSource->setCurrentRow(0);
 
 			auto buttonStart = new QPushButton("Start");
 			buttonStart->setFocusPolicy(Qt::FocusPolicy::NoFocus);
@@ -164,17 +233,29 @@ void Dialog::initialize()
 			buttonStart->setFixedWidth(100);
 			buttonStart->setFixedHeight(100);
 
-			connect(buttonStart, &QPushButton::toggled, [this, buttonStart](bool checked)
+			connect(buttonStart, &QPushButton::toggled, [this, listMotionSource, buttonStart](bool checked)
 			{
 				if (checked)
 				{
 					buttonStart->setText("Stop");
-					timerUpdateUI->start();
+
+					motionSource = motionSources[listMotionSource->currentRow()];
+
+					if (motionSource->start() == false)
+					{
+						buttonStart->setChecked(false);
+						return;
+					}
+
+					motionTimer->start();
 				}
 				else
 				{
 					buttonStart->setText("Start");
-					timerUpdateUI->stop();
+
+					motionSource->stop();
+
+					motionTimer->stop();
 				}
 			});
 
@@ -215,6 +296,11 @@ void Dialog::initialize()
 
 void Dialog::updateUI()
 {
+	for (int i = 0; i < numMotors; i++)
+	{
+		auto valueMotorPosition = findChild<QLabel*>(QString("valueMotorPosition%1").arg(i));
+		valueMotorPosition->setText(QString::number(currentPositions[i]));
+	}
 }
 
 bool Dialog::loadOption()
@@ -304,231 +390,24 @@ bool Dialog::saveOption()
 	return true;
 }
 
-bool Dialog::eventFilter(QObject* object, QEvent* event)
+void Dialog::addMotionModules()
 {
-	QKeyEvent* keyEvent = dynamic_cast<QKeyEvent*>(event);
-	if (keyEvent)
+	auto listMotionSource = findChild<QListWidget*>("listMotionSource");
+
+	auto addModule = [this, listMotionSource](ACServoMotionBase* motion)
 	{
-		if (keyEvent->key() == Qt::Key_Escape)
-		{
-			return true;
-		}
+		listMotionSource->addItem(motion->getMotionName());
 
-		if (event->type() == QEvent::KeyRelease)
-		{
-			keyPressEvent(keyEvent);
-			return true;
-		}
-	}
+		motionSources.emplace_back(motion);
+	};
 
-	return __super::eventFilter(object, event);
-}
+	// default module
+	ACServoMotionKeyboard* motionKeyboard = new ACServoMotionKeyboard;
+	installEventFilter(motionKeyboard);
+	addModule(motionKeyboard);
 
-void Dialog::keyPressEvent(QKeyEvent* event)
-{
-	if (timerUpdateUI->isActive() == false)
-	{
-		return;
-	}
+	// dynamic load
+	
 
-	if (event->isAutoRepeat())
-	{
-		return;
-	}
-
-	int heave = 0;
-
-	if (event->type() == QEvent::KeyRelease)
-	{
-		switch (event->key())
-		{
-			case Qt::Key_Left:
-			{
-				if (rollMoved != -1)
-					return;
-
-				rollMoved = 0;
-
-				break;
-			}
-			case Qt::Key_Right:
-			{
-				if (rollMoved != 1)
-					return;
-
-				rollMoved = 0;
-
-				break;
-			}
-			case Qt::Key_Up:
-			{
-				if (pitchMoved != -1)
-					return;
-
-				pitchMoved = 0;
-
-				break;
-			}
-			case Qt::Key_Down:
-			{
-				if (pitchMoved != 1)
-					return;
-
-				pitchMoved = 0;
-
-				break;
-			}
-		}
-	}
-	else
-	{
-		switch (event->key())
-		{
-			case Qt::Key_W:
-			{
-				heave = 1;
-
-				printf("heave up\n");
-
-				break;
-			}
-			case Qt::Key_S:
-			{
-				heave = -1;
-
-				printf("heave down\n");
-
-				break;
-			}
-			case Qt::Key_Left:
-			{
-				if (rollMoved != 0)
-					return;
-
-				rollMoved = -1;
-
-				printf("left\n");
-				break;
-			}
-			case Qt::Key_Right:
-			{
-				if (rollMoved != 0)
-					return;
-
-				rollMoved = 1;
-
-				printf("right\n");
-				break;
-			}
-			case Qt::Key_Up:
-			{
-				if (pitchMoved != 0)
-					return;
-
-				pitchMoved = -1;
-
-				printf("up\n");
-				break;
-			}
-			case Qt::Key_Down:
-			{
-				if (pitchMoved != 0)
-					return;
-
-				pitchMoved = 1;
-
-				printf("down\n");
-				break;
-			}
-		}
-	}
-
-
-	if (motor.isConnected() == false)
-		return;
-
-	std::vector<int> currentPositions(numMotors);
-	int completeCount = 0;
-
-	for (int i = 0; i < numMotors; i++)
-	{
-		bool moving = true;
-
-		motor.position(i, currentPositions[i], moving);
-		currentPositions[i] *= sign;
-
-		printf("%6d    ", currentPositions[i]);
-
-		if (moving == false)
-			completeCount++;
-	}
-
-	printf("\n");
-
-	if (completeCount != numMotors)
-	{
-		printf("Motors are moving.\n");
-
-		return;
-	}
-
-
-	// TODO: 모터가 2개인 경우 heave 값은 무시한다.
-
-	std::vector<int> cycleValues(numMotors);
-
-	for (int i = 0; i < numMotors; i++)
-	{
-		cycleValues[i] += (heave * 10000 * sign);
-	}
-
-	if (numMotors == 2)
-	{
-		std::vector<int> desirePosition = centerPositions;
-
-		desirePosition[0] += (rollMoved * angle * sign);
-		desirePosition[1] -= (rollMoved * angle * sign);
-		desirePosition[0] -= (pitchMoved * angle * sign);
-		desirePosition[1] -= (pitchMoved * angle * sign);
-
-		cycleValues[0] += (desirePosition[0] - currentPositions[0]);
-		cycleValues[1] += (desirePosition[1] - currentPositions[1]);
-	}
-	else if (numMotors == 4)
-	{
-		std::vector<int> desirePosition = centerPositions;
-
-		desirePosition[0] += (rollMoved * angle * sign);
-		desirePosition[1] += (rollMoved * angle * sign);
-		desirePosition[2] -= (rollMoved * angle * sign);
-		desirePosition[3] -= (rollMoved * angle * sign);
-
-		desirePosition[0] += (pitchMoved * angle * sign);
-		desirePosition[1] += (pitchMoved * angle * sign);
-		desirePosition[2] -= (pitchMoved * angle * sign);
-		desirePosition[3] -= (pitchMoved * angle * sign);
-
-		cycleValues[0] += (desirePosition[0] - currentPositions[0]);
-		cycleValues[1] += (desirePosition[1] - currentPositions[1]);
-		cycleValues[2] += (desirePosition[2] - currentPositions[2]);
-		cycleValues[3] += (desirePosition[3] - currentPositions[3]);
-	}
-
-	for (int i = 0; i < numMotors; i++)
-	{
-		int position = cycleValues[i];
-
-		if (currentPositions[i] + position < 0 ||
-			currentPositions[i] + position >= limitPositions[i])
-			position = 0;
-
-		motor.setPosition(position, i, false);
-	}
-
-	motor.trigger();
-}
-
-void Dialog::closeEvent(QCloseEvent* event)
-{
-	__super::closeEvent(event);
+	listMotionSource->setCurrentRow(0);
 }

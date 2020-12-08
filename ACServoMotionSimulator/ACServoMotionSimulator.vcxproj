@@ -88,6 +88,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ACServoMotionKeyboard.cpp" />
     <ClCompile Include="ACServoMotorHelper.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
@@ -102,6 +103,8 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ACServoMotionBase.h" />
+    <ClInclude Include="ACServoMotionKeyboard.h" />
     <ClInclude Include="ACServoMotorHelper.h" />
     <ClInclude Include="ACServoMotorSerial.h" />
     <ClInclude Include="Dialog.h" />
