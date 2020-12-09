@@ -10,6 +10,9 @@
     <ClCompile Include="Motion\ACServoMotionKeyboard.cpp">
       <Filter>Motion</Filter>
     </ClCompile>
+    <ClCompile Include="Motion\ACServoMotionPCars2.cpp">
+      <Filter>Motion</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ACServoMotorHelper.h" />
@@ -21,6 +24,12 @@
       <Filter>Motion</Filter>
     </ClInclude>
     <ClInclude Include="Motion\ACServoMotionKeyboard.h">
+      <Filter>Motion</Filter>
+    </ClInclude>
+    <ClInclude Include="Motion\ACServoMotionPCars2.h">
+      <Filter>Motion</Filter>
+    </ClInclude>
+    <ClInclude Include="Motion\PCars2Data.h">
       <Filter>Motion</Filter>
     </ClInclude>
   </ItemGroup>
