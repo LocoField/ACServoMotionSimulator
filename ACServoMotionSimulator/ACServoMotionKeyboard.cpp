@@ -8,8 +8,13 @@ char* ACServoMotionKeyboard::getMotionName()
 
 bool ACServoMotionKeyboard::process(void* arg)
 {
-	axis.roll = rollMoved;
-	axis.pitch = pitchMoved;
+	Vector3 angleOld = angle;
+
+	angle.x = rollMoved;
+	angle.y = pitchMoved;
+
+	if (angleOld == angle)
+		return false;
 
 	return true;
 }

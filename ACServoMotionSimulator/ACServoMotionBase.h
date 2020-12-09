@@ -1,10 +1,16 @@
 #pragma once
 
-struct Axis
+class Vector3
 {
-	float roll = 0;
-	float pitch = 0;
-	float yaw = 0;
+public:
+	float x = 0;
+	float y = 0;
+	float z = 0;
+
+	bool operator==(const Vector3& other)
+	{
+		return abs(x - other.x) < 0.1f && abs(y - other.y) < 0.1f && abs(z - other.z) < 0.1f;
+	}
 };
 
 class ACServoMotionBase
@@ -17,7 +23,7 @@ public:
 	virtual char* getMotionName() abstract;
 	virtual int getWaitTime() { return 10; }
 
-	virtual void position(Axis& axis) { axis = this->axis; }
+	virtual void position(Vector3& angle) { angle = this->angle; }
 
 	virtual bool start() { return true; }
 	virtual void stop() {}
@@ -25,6 +31,6 @@ public:
 	virtual bool process(void* arg) abstract;
 
 protected:
-	Axis axis;
+	Vector3 angle;
 
 };

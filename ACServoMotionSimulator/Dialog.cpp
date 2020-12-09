@@ -25,7 +25,7 @@ void Dialog::initialize()
 	motionTimer = new QTimer;
 	connect(motionTimer, &QTimer::timeout, [this]()
 	{
-		Axis axis;
+		Vector3 angleMotion;
 
 		if (motionSource)
 		{
@@ -34,10 +34,10 @@ void Dialog::initialize()
 			if (motionSource->process(this) == false)
 				return;
 
-			motionSource->position(axis);
+			motionSource->position(angleMotion);
 		}
 
-		printf("%f %f\n", axis.roll, axis.pitch);
+		printf("%f %f\n", angleMotion.x, angleMotion.y);
 
 		if (motor.isConnected() == false)
 			return;
@@ -59,10 +59,10 @@ void Dialog::initialize()
 		{
 			std::vector<int> desirePosition = centerPositions;
 
-			desirePosition[0] += (axis.roll * angle * sign);
-			desirePosition[1] -= (axis.roll * angle * sign);
-			desirePosition[0] -= (axis.pitch * angle * sign);
-			desirePosition[1] -= (axis.pitch * angle * sign);
+			desirePosition[0] += (angleMotion.x * angle * sign);
+			desirePosition[1] -= (angleMotion.x * angle * sign);
+			desirePosition[0] -= (angleMotion.y * angle * sign);
+			desirePosition[1] -= (angleMotion.y * angle * sign);
 
 			cycleValues[0] += (desirePosition[0] - currentPositions[0]);
 			cycleValues[1] += (desirePosition[1] - currentPositions[1]);
@@ -71,15 +71,15 @@ void Dialog::initialize()
 		{
 			std::vector<int> desirePosition = centerPositions;
 
-			desirePosition[0] += (axis.roll * angle * sign);
-			desirePosition[1] += (axis.roll * angle * sign);
-			desirePosition[2] -= (axis.roll * angle * sign);
-			desirePosition[3] -= (axis.roll * angle * sign);
+			desirePosition[0] += (angleMotion.x * angle * sign);
+			desirePosition[1] += (angleMotion.x * angle * sign);
+			desirePosition[2] -= (angleMotion.x * angle * sign);
+			desirePosition[3] -= (angleMotion.x * angle * sign);
 
-			desirePosition[0] += (axis.pitch * angle * sign);
-			desirePosition[1] += (axis.pitch * angle * sign);
-			desirePosition[2] -= (axis.pitch * angle * sign);
-			desirePosition[3] -= (axis.pitch * angle * sign);
+			desirePosition[0] += (angleMotion.y * angle * sign);
+			desirePosition[1] += (angleMotion.y * angle * sign);
+			desirePosition[2] -= (angleMotion.y * angle * sign);
+			desirePosition[3] -= (angleMotion.y * angle * sign);
 
 			cycleValues[0] += (desirePosition[0] - currentPositions[0]);
 			cycleValues[1] += (desirePosition[1] - currentPositions[1]);
