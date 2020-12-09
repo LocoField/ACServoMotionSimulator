@@ -91,6 +91,25 @@ bool ACServoMotorSerial::trigger(int index)
 	return true;
 }
 
+bool ACServoMotorSerial::stop(int index)
+{
+	int begin = index;
+	int end = index + 1;
+
+	if (index < 0)
+	{
+		begin = 0;
+		end = numMotors_;
+	}
+
+	for (int i = begin; i < end; i++)
+	{
+		writeAndRead(ACServoMotorHelper::stop(i + 1));
+	}
+
+	return true;
+}
+
 bool ACServoMotorSerial::position(int index, int& position, bool& moving)
 {
 	auto received = writeAndRead(ACServoMotorHelper::readEncoder(index + 1));

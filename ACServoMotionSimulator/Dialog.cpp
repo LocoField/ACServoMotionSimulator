@@ -22,8 +22,6 @@ Dialog::~Dialog()
 
 void Dialog::initialize()
 {
-	installEventFilter(this);
-
 	motionTimer = new QTimer;
 	connect(motionTimer, &QTimer::timeout, [this]()
 	{
@@ -43,6 +41,8 @@ void Dialog::initialize()
 
 		if (motor.isConnected() == false)
 			return;
+
+		motor.stop();
 
 		for (int i = 0; i < numMotors; i++)
 		{
@@ -330,6 +330,7 @@ bool Dialog::loadOption()
 				numMotors = optionArray.size();
 				centerPositions.resize(numMotors);
 				limitPositions.resize(numMotors);
+				currentPositions.resize(numMotors);
 
 				int index = 0;
 				for (auto it = optionArray.begin(); it != optionArray.end(); ++it)

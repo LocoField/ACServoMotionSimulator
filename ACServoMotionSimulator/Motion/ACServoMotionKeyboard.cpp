@@ -9,8 +9,8 @@ bool ACServoMotionKeyboard::process(void* arg)
 {
 	Vector3 angleOld = angle;
 
-	angle.x = rollMoved;
-	angle.y = pitchMoved;
+	angle.x = rollMoved * 10;
+	angle.y = pitchMoved * 10;
 
 	if (angleOld == angle)
 		return false;
