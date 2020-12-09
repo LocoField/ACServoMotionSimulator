@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="ACServoMotorHelper.cpp" />
+    <ClCompile Include="ACServoMotorSerial.cpp" />
+    <ClCompile Include="Dialog.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="SerialPort.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="Motion\ACServoMotionKeyboard.cpp">
+      <Filter>Motion</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ACServoMotorHelper.h" />
+    <ClInclude Include="ACServoMotorSerial.h" />
+    <ClInclude Include="Dialog.h" />
+    <ClInclude Include="SerialPort.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="Motion\ACServoMotionBase.h">
+      <Filter>Motion</Filter>
+    </ClInclude>
+    <ClInclude Include="Motion\ACServoMotionKeyboard.h">
+      <Filter>Motion</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Motion">
+      <UniqueIdentifier>{eaec6941-22f0-44d2-9d7f-e61891759bc9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

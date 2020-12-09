@@ -1,5 +1,9 @@
 #pragma once
 
+#define _USE_MATH_DEFINES
+
+#include <math.h>
+
 class Vector3
 {
 public:
@@ -9,7 +13,7 @@ public:
 
 	bool operator==(const Vector3& other)
 	{
-		return abs(x - other.x) < 0.1f && abs(y - other.y) < 0.1f && abs(z - other.z) < 0.1f;
+		return fabs(x - other.x) < 0.1f && fabs(y - other.y) < 0.1f && fabs(z - other.z) < 0.1f;
 	}
 };
 

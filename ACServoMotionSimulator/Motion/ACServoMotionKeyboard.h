@@ -2,6 +2,9 @@
 
 #include "ACServoMotionBase.h"
 
+#include <QtCore/QObject>
+#include <QtGui/QKeyEvent>
+
 class ACServoMotionKeyboard : public ACServoMotionBase, public QObject
 {
 public:

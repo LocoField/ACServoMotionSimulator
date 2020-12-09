@@ -25,8 +25,6 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QListWidget>
 
-#include <QtGui/QKeyEvent>
-
 #include <QtCore/QTimer>
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>

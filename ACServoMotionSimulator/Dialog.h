@@ -1,12 +1,12 @@
 #pragma once
 
-#include "ACServoMotionBase.h"
 #include "ACServoMotorSerial.h"
 
 #include <QtWidgets/QDialog>
 
 class QVBoxLayout;
 class QTimer;
+class ACServoMotionBase;
 
 class Dialog : public QDialog
 {
@@ -29,9 +29,10 @@ private:
 	QVBoxLayout* motorLayout;
 	QVBoxLayout* controllerLayout;
 
+	QTimer* motionTimer;
+
 	std::vector<ACServoMotionBase*> motionSources;
 	ACServoMotionBase* motionSource = nullptr;
-	QTimer* motionTimer;
 
 	ACServoMotorSerial motor;
 

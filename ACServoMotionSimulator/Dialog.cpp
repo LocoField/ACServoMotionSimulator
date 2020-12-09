@@ -1,7 +1,8 @@
 #include "stdafx.h"
 #include "Dialog.h"
 #include "ACServoMotorHelper.h"
-#include "ACServoMotionKeyboard.h"
+
+#include "Motion/ACServoMotionKeyboard.h"
 
 #define DIALOG_TITLE "LocoField Motion Simulator"
 
@@ -403,7 +404,7 @@ void Dialog::addMotionModules()
 
 	// default module
 	ACServoMotionKeyboard* motionKeyboard = new ACServoMotionKeyboard;
-	installEventFilter(motionKeyboard);
+	installEventFilter(motionKeyboard); // for receiving QKeyEvent
 	addModule(motionKeyboard);
 
 	// dynamic load

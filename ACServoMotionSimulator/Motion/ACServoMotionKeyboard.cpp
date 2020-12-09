@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "ACServoMotionKeyboard.h"
 
 char* ACServoMotionKeyboard::getMotionName()

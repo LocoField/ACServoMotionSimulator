@@ -88,7 +88,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ACServoMotionKeyboard.cpp" />
     <ClCompile Include="ACServoMotorHelper.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
@@ -96,6 +95,10 @@
     <ClCompile Include="ACServoMotorSerial.cpp" />
     <ClCompile Include="Dialog.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Motion\ACServoMotionKeyboard.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="SerialPort.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -103,11 +106,11 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ACServoMotionBase.h" />
-    <ClInclude Include="ACServoMotionKeyboard.h" />
     <ClInclude Include="ACServoMotorHelper.h" />
     <ClInclude Include="ACServoMotorSerial.h" />
     <ClInclude Include="Dialog.h" />
+    <ClInclude Include="Motion\ACServoMotionBase.h" />
+    <ClInclude Include="Motion\ACServoMotionKeyboard.h" />
     <ClInclude Include="SerialPort.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
