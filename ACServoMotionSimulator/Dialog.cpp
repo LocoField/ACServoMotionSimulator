@@ -95,7 +95,10 @@ void Dialog::initialize()
 
 			if (currentPositions[i] + position < 0 ||
 				currentPositions[i] + position >= limitPositions[i])
+			{
+				printf("WARNING: cannot move %d from %d\n", position, currentPositions[i]);
 				position = 0;
+			}
 
 			motor.setPosition(position, i, false);
 		}
@@ -407,7 +410,8 @@ void Dialog::addMotionModules()
 	installEventFilter(motionKeyboard); // for receiving QKeyEvent
 	addModule(motionKeyboard);
 
-	
+	ACServoMotionPCars2* motionPCars2 = new ACServoMotionPCars2;
+	addModule(motionPCars2);
 
 	// dynamic load
 	
