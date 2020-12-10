@@ -172,8 +172,6 @@ void Dialog::initialize()
 				else
 				{
 					motor.disconnect();
-
-					numMotors = 0;
 				}
 			});
 

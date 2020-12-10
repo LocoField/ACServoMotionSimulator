@@ -40,7 +40,19 @@ bool ACServoMotorSerial::connect(QString portName, int numMotors)
 
 bool ACServoMotorSerial::setSpeed(int speed, int index)
 {
-	writeAndRead(ACServoMotorHelper::setSpeed(speed, index + 1));
+	int begin = index;
+	int end = index + 1;
+
+	if (index < 0)
+	{
+		begin = 0;
+		end = numMotors_;
+	}
+
+	for (int i = begin; i < end; i++)
+	{
+		writeAndRead(ACServoMotorHelper::setSpeed(speed, i + 1));
+	}
 
 	return true;
 }
