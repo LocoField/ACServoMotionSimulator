@@ -71,22 +71,20 @@ bool ACServoMotionPCars2::process(void* arg)
 
 	memcpy(pDataLocal, pDataMapped, sizeof(PCars2Data));
 
-	Vector3 angleOld = angle;
-
 	angle.x = 0;
 	angle.y = 0;
 	angle.z = 0;
 
 	switch (pDataLocal->mGameState)
 	{
-		case GAME_EXITED:
-		case GAME_INGAME_RESTARTING:
-		{
-			return true;
-		}
 		case GAME_INGAME_PAUSED:
 		{
 			return false;
+		}
+		case GAME_EXITED:
+		case GAME_INGAME_RESTARTING:
+		{
+			break;
 		}
 		case GAME_INGAME_PLAYING:
 		{
@@ -108,11 +106,10 @@ bool ACServoMotionPCars2::process(void* arg)
 
 			angle.x = (float)roll;
 			angle.y = (float)pitch;
+
+			break;
 		}
 	}
-
-	if (angleOld == angle)
-		return false;
 
 	return true;
 }

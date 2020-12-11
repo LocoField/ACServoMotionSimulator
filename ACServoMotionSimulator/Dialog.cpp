@@ -29,33 +29,32 @@ void Dialog::initialize()
 
 		if (motionSource)
 		{
-			Sleep(motionSource->getWaitTime());
-
 			if (motionSource->process(this) == false)
 				return;
 
 			motionSource->position(angleMotion);
 		}
 
-		printf("%f %f\n", angleMotion.x, angleMotion.y);
+		printf("%f    %f    %f\n", angleMotion.x, angleMotion.y, angleMotion.z);
+
 
 		if (motor.isConnected() == false)
 			return;
 
-		motor.stop();
+		std::vector<int> positions(numMotors);
 
 		for (int i = 0; i < numMotors; i++)
 		{
 			bool moving = true;
 
-			motor.position(i, currentPositions[i], moving);
-			currentPositions[i] *= sign;
+			motor.position(i, positions[i], moving);
+			positions[i] *= sign;
 		}
 
-		updateUI();
+		updateUI(positions);
 
 
-		std::vector<int> cycleValues(numMotors);
+		std::vector<int> directions(numMotors);
 
 		if (numMotors == 2)
 		{
@@ -66,8 +65,8 @@ void Dialog::initialize()
 			desirePosition[0] -= (angleMotion.y * angle);
 			desirePosition[1] -= (angleMotion.y * angle);
 
-			cycleValues[0] += (desirePosition[0] - currentPositions[0]);
-			cycleValues[1] += (desirePosition[1] - currentPositions[1]);
+			directions[0] = (desirePosition[0] - positions[0]) > 0 ? 1 : -1;
+			directions[1] = (desirePosition[1] - positions[1]) > 0 ? 1 : -1;
 		}
 		else if (numMotors == 4)
 		{
@@ -83,27 +82,26 @@ void Dialog::initialize()
 			desirePosition[2] -= (angleMotion.y * angle);
 			desirePosition[3] -= (angleMotion.y * angle);
 
-			cycleValues[0] += (desirePosition[0] - currentPositions[0]);
-			cycleValues[1] += (desirePosition[1] - currentPositions[1]);
-			cycleValues[2] += (desirePosition[2] - currentPositions[2]);
-			cycleValues[3] += (desirePosition[3] - currentPositions[3]);
+			directions[0] = (desirePosition[0] - positions[0]) > 0 ? 1 : -1;
+			directions[1] = (desirePosition[1] - positions[1]) > 0 ? 1 : -1;
+			directions[2] = (desirePosition[2] - positions[2]) > 0 ? 1 : -1;
+			directions[3] = (desirePosition[3] - positions[3]) > 0 ? 1 : -1;
 		}
 
 		for (int i = 0; i < numMotors; i++)
 		{
-			int position = cycleValues[i];
+			directions[i] *= sign;
+			int position = directions[i] * angle;
 
-			if (currentPositions[i] + position < 0 ||
-				currentPositions[i] + position >= limitPositions[i])
+			if (positions[i] + position < 0 ||
+				positions[i] + position >= limitPositions[i])
 			{
-				printf("WARNING: cannot move %d from %d\n", position, currentPositions[i]);
-				position = 0;
+				printf("WARNING: cannot move %d from %d\n", position, positions[i]);
+				continue;
 			}
 
-			motor.setPosition(position * sign, i, false);
+			motor.trigger(directions[i] > 0 ? 1 : 2, i);
 		}
-
-		motor.trigger();
 	});
 
 	{
@@ -170,7 +168,12 @@ void Dialog::initialize()
 						return;
 					}
 
-					motor.setSpeed(speed);
+					motor.setPosition(angle, 1, -1, false);
+					motor.setPosition(-angle, 2, -1, false);
+
+					motor.setSpeed(speed, 0);
+					motor.setSpeed(speed, 1);
+					motor.setSpeed(speed, 2);
 				}
 				else
 				{
@@ -184,7 +187,7 @@ void Dialog::initialize()
 				{
 					for (int i = 0; i < numMotors; i++)
 					{
-						motor.setPosition(centerPositions[i] * sign, i);
+						motor.setPosition(centerPositions[i] * sign, 0, i);
 					}
 				}
 				else
@@ -297,12 +300,12 @@ void Dialog::initialize()
 	}
 }
 
-void Dialog::updateUI()
+void Dialog::updateUI(const std::vector<int>& positions)
 {
 	for (int i = 0; i < numMotors; i++)
 	{
 		auto valueMotorPosition = findChild<QLabel*>(QString("valueMotorPosition%1").arg(i));
-		valueMotorPosition->setText(QString::number(currentPositions[i]));
+		valueMotorPosition->setText(QString::number(positions[i]));
 	}
 }
 
@@ -331,7 +334,6 @@ bool Dialog::loadOption()
 				numMotors = optionArray.size();
 				centerPositions.resize(numMotors);
 				limitPositions.resize(numMotors);
-				currentPositions.resize(numMotors);
 
 				int index = 0;
 				for (auto it = optionArray.begin(); it != optionArray.end(); ++it)

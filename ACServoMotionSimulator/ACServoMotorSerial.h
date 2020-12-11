@@ -14,11 +14,11 @@ protected:
 public:
 	bool connect(QString portName, int numMotors);
 
-	bool setSpeed(int speed, int index = -1);
+	bool setSpeed(int speed, int index, int device = -1);
 
-	bool setPosition(int position, int index = -1, bool autoTrigger = true);
-	bool trigger(int index = -1);
-	bool stop(int index = -1);
+	bool setPosition(int position, int index, int device = -1, bool autoTrigger = true);
+	bool trigger(int index, int device = -1);
+	bool stop(int index, int device = -1);
 
 	bool position(int index, int& position, bool& moving);
 

@@ -38,12 +38,12 @@ bool ACServoMotorSerial::connect(QString portName, int numMotors)
 	return true;
 }
 
-bool ACServoMotorSerial::setSpeed(int speed, int index)
+bool ACServoMotorSerial::setSpeed(int speed, int index, int device)
 {
-	int begin = index;
-	int end = index + 1;
+	int begin = device;
+	int end = device + 1;
 
-	if (index < 0)
+	if (device < 0)
 	{
 		begin = 0;
 		end = numMotors_;
@@ -51,18 +51,18 @@ bool ACServoMotorSerial::setSpeed(int speed, int index)
 
 	for (int i = begin; i < end; i++)
 	{
-		writeAndRead(ACServoMotorHelper::setSpeed(speed, i + 1));
+		writeAndRead(ACServoMotorHelper::setSpeed(speed, i + 1, index));
 	}
 
 	return true;
 }
 
-bool ACServoMotorSerial::setPosition(int position, int index, bool autoTrigger)
+bool ACServoMotorSerial::setPosition(int position, int index, int device, bool autoTrigger)
 {
-	int begin = index;
-	int end = index + 1;
+	int begin = device;
+	int end = device + 1;
 
-	if (index < 0)
+	if (device < 0)
 	{
 		begin = 0;
 		end = numMotors_;
@@ -70,25 +70,25 @@ bool ACServoMotorSerial::setPosition(int position, int index, bool autoTrigger)
 
 	for (int i = begin; i < end; i++)
 	{
-		auto received = writeAndRead(ACServoMotorHelper::setPosition(position, i + 1));
+		auto received = writeAndRead(ACServoMotorHelper::setPosition(position, i + 1, index));
 		if (received.empty())
 			continue;
 
 		if (autoTrigger)
 		{
-			trigger(i);
+			trigger(index, i);
 		}
 	}
 
 	return true;
 }
 
-bool ACServoMotorSerial::trigger(int index)
+bool ACServoMotorSerial::trigger(int index, int device)
 {
-	int begin = index;
-	int end = index + 1;
+	int begin = device;
+	int end = device + 1;
 
-	if (index < 0)
+	if (device < 0)
 	{
 		begin = 0;
 		end = numMotors_;
@@ -96,19 +96,19 @@ bool ACServoMotorSerial::trigger(int index)
 
 	for (int i = begin; i < end; i++)
 	{
-		writeAndRead(ACServoMotorHelper::trigger(i + 1));
+		writeAndRead(ACServoMotorHelper::trigger(i + 1, index));
 		writeAndRead(ACServoMotorHelper::normal(i + 1));
 	}
 
 	return true;
 }
 
-bool ACServoMotorSerial::stop(int index)
+bool ACServoMotorSerial::stop(int index, int device)
 {
-	int begin = index;
-	int end = index + 1;
+	int begin = device;
+	int end = device + 1;
 
-	if (index < 0)
+	if (device < 0)
 	{
 		begin = 0;
 		end = numMotors_;
@@ -116,15 +116,15 @@ bool ACServoMotorSerial::stop(int index)
 
 	for (int i = begin; i < end; i++)
 	{
-		writeAndRead(ACServoMotorHelper::stop(i + 1));
+		writeAndRead(ACServoMotorHelper::stop(i + 1, index));
 	}
 
 	return true;
 }
 
-bool ACServoMotorSerial::position(int index, int& position, bool& moving)
+bool ACServoMotorSerial::position(int device, int& position, bool& moving)
 {
-	auto received = writeAndRead(ACServoMotorHelper::readEncoder(index + 1));
+	auto received = writeAndRead(ACServoMotorHelper::readEncoder(device + 1));
 
 	if (ACServoMotorHelper::getEncoderValue(received, position, moving) == false)
 	{

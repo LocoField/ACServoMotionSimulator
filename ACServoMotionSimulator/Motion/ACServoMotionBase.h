@@ -4,17 +4,11 @@
 
 #include <math.h>
 
-class Vector3
+struct Vector3
 {
-public:
 	float x = 0;
 	float y = 0;
 	float z = 0;
-
-	bool operator==(const Vector3& other)
-	{
-		return fabs(x - other.x) < 0.1f && fabs(y - other.y) < 0.1f && fabs(z - other.z) < 0.1f;
-	}
 };
 
 class ACServoMotionBase
@@ -25,7 +19,6 @@ public:
 
 public:
 	virtual char* getMotionName() abstract;
-	virtual int getWaitTime() { return 10; }
 
 	virtual void position(Vector3& angle) { angle = this->angle; }
 

@@ -16,7 +16,7 @@ public:
 
 protected:
 	void initialize();
-	void updateUI();
+	void updateUI(const std::vector<int>& positions);
 
 public:
 	bool loadOption();
@@ -39,7 +39,6 @@ private:
 	int numMotors = 0;
 	std::vector<int> centerPositions;
 	std::vector<int> limitPositions;
-	std::vector<int> currentPositions;
 
 	QString portName;
 	int angle = 5000; // difference
