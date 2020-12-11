@@ -61,10 +61,10 @@ void Dialog::initialize()
 		{
 			std::vector<int> desirePosition = centerPositions;
 
-			desirePosition[0] += (angleMotion.x * angle * sign);
-			desirePosition[1] -= (angleMotion.x * angle * sign);
-			desirePosition[0] -= (angleMotion.y * angle * sign);
-			desirePosition[1] -= (angleMotion.y * angle * sign);
+			desirePosition[0] += (angleMotion.x * angle);
+			desirePosition[1] -= (angleMotion.x * angle);
+			desirePosition[0] -= (angleMotion.y * angle);
+			desirePosition[1] -= (angleMotion.y * angle);
 
 			cycleValues[0] += (desirePosition[0] - currentPositions[0]);
 			cycleValues[1] += (desirePosition[1] - currentPositions[1]);
@@ -73,15 +73,15 @@ void Dialog::initialize()
 		{
 			std::vector<int> desirePosition = centerPositions;
 
-			desirePosition[0] += (angleMotion.x * angle * sign);
-			desirePosition[1] += (angleMotion.x * angle * sign);
-			desirePosition[2] -= (angleMotion.x * angle * sign);
-			desirePosition[3] -= (angleMotion.x * angle * sign);
+			desirePosition[0] += (angleMotion.x * angle);
+			desirePosition[1] -= (angleMotion.x * angle);
+			desirePosition[2] += (angleMotion.x * angle);
+			desirePosition[3] -= (angleMotion.x * angle);
 
-			desirePosition[0] += (angleMotion.y * angle * sign);
-			desirePosition[1] += (angleMotion.y * angle * sign);
-			desirePosition[2] -= (angleMotion.y * angle * sign);
-			desirePosition[3] -= (angleMotion.y * angle * sign);
+			desirePosition[0] += (angleMotion.y * angle);
+			desirePosition[1] += (angleMotion.y * angle);
+			desirePosition[2] -= (angleMotion.y * angle);
+			desirePosition[3] -= (angleMotion.y * angle);
 
 			cycleValues[0] += (desirePosition[0] - currentPositions[0]);
 			cycleValues[1] += (desirePosition[1] - currentPositions[1]);
@@ -100,7 +100,7 @@ void Dialog::initialize()
 				position = 0;
 			}
 
-			motor.setPosition(position, i, false);
+			motor.setPosition(position * sign, i, false);
 		}
 
 		motor.trigger();
@@ -200,7 +200,7 @@ void Dialog::initialize()
 						if (moving)
 							continue;
 
-						motor.setPosition(-position, i);
+						motor.setPosition(position, i);
 
 						i++;
 					}
