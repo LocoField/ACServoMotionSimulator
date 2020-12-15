@@ -250,6 +250,7 @@ void Dialog::initialize()
 						return;
 					}
 
+					listMotionSource->setEnabled(false);
 					motionTimer->start();
 				}
 				else
@@ -258,6 +259,7 @@ void Dialog::initialize()
 
 					motionSource->stop();
 
+					listMotionSource->setEnabled(true);
 					motionTimer->stop();
 				}
 			});
