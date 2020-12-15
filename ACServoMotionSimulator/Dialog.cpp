@@ -189,18 +189,18 @@ void Dialog::initialize()
 				}
 				else
 				{
+					// why index required to stop motors?
+					motor.stop(0);
+					motor.stop(1);
+					motor.stop(2);
+
 					for (int i = 0; i < numMotors;)
 					{
 						int position = 0;
 						bool moving = true;
 
 						motor.position(i, position, moving);
-						position *= sign;
-
-						if (moving)
-							continue;
-
-						motor.setPosition(position, i);
+						motor.setPosition(-position, 0, i);
 
 						i++;
 					}
