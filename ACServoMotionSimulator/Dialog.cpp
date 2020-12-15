@@ -41,66 +41,55 @@ void Dialog::initialize()
 		if (motor.isConnected() == false)
 			return;
 
-		std::vector<int> positions(numMotors);
+		std::vector<int> motorPositions(numMotors);
 
 		for (int i = 0; i < numMotors; i++)
 		{
 			bool moving = true;
 
-			motor.position(i, positions[i], moving);
-			positions[i] *= sign;
+			motor.position(i, motorPositions[i], moving);
+			motorPositions[i] *= sign;
 		}
 
-		updateUI(positions);
+		updateUI(motorPositions);
 
 
-		std::vector<int> directions(numMotors);
+		std::vector<int> targetPositions = centerPositions;
 
 		if (numMotors == 2)
 		{
-			std::vector<int> desirePosition = centerPositions;
-
-			desirePosition[0] += (angleMotion.x * angle);
-			desirePosition[1] -= (angleMotion.x * angle);
-			desirePosition[0] -= (angleMotion.y * angle);
-			desirePosition[1] -= (angleMotion.y * angle);
-
-			directions[0] = (desirePosition[0] - positions[0]) > 0 ? 1 : -1;
-			directions[1] = (desirePosition[1] - positions[1]) > 0 ? 1 : -1;
+			targetPositions[0] += (angleMotion.x * angle);
+			targetPositions[1] -= (angleMotion.x * angle);
+			targetPositions[0] -= (angleMotion.y * angle);
+			targetPositions[1] -= (angleMotion.y * angle);
 		}
 		else if (numMotors == 4)
 		{
-			std::vector<int> desirePosition = centerPositions;
+			targetPositions[0] += (angleMotion.x * angle);
+			targetPositions[1] -= (angleMotion.x * angle);
+			targetPositions[2] += (angleMotion.x * angle);
+			targetPositions[3] -= (angleMotion.x * angle);
 
-			desirePosition[0] += (angleMotion.x * angle);
-			desirePosition[1] -= (angleMotion.x * angle);
-			desirePosition[2] += (angleMotion.x * angle);
-			desirePosition[3] -= (angleMotion.x * angle);
-
-			desirePosition[0] += (angleMotion.y * angle);
-			desirePosition[1] += (angleMotion.y * angle);
-			desirePosition[2] -= (angleMotion.y * angle);
-			desirePosition[3] -= (angleMotion.y * angle);
-
-			directions[0] = (desirePosition[0] - positions[0]) > 0 ? 1 : -1;
-			directions[1] = (desirePosition[1] - positions[1]) > 0 ? 1 : -1;
-			directions[2] = (desirePosition[2] - positions[2]) > 0 ? 1 : -1;
-			directions[3] = (desirePosition[3] - positions[3]) > 0 ? 1 : -1;
+			targetPositions[0] += (angleMotion.y * angle);
+			targetPositions[1] += (angleMotion.y * angle);
+			targetPositions[2] -= (angleMotion.y * angle);
+			targetPositions[3] -= (angleMotion.y * angle);
 		}
 
 		for (int i = 0; i < numMotors; i++)
 		{
-			directions[i] *= sign;
-			int position = directions[i] * angle;
+			int position = targetPositions[i] - motorPositions[i];
 
-			if (positions[i] + position < 0 ||
-				positions[i] + position >= limitPositions[i])
-			{
-				printf("WARNING: cannot move %d from %d\n", position, positions[i]);
+			if (abs(position) < angle)
 				continue;
-			}
 
-			motor.trigger(directions[i] > 0 ? 1 : 2, i);
+			if (motorPositions[i] + position < 0 ||
+				motorPositions[i] + position >= limitPositions[i])
+				continue;
+
+			int triggerIndex = position > 0 ? 1 : 2;
+
+			motor.trigger(triggerIndex, i);
 		}
 	});
 
