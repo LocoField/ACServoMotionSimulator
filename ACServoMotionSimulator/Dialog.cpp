@@ -119,11 +119,18 @@ void Dialog::initialize()
 			buttonConnect->setFixedWidth(150);
 			buttonConnect->setFixedHeight(100);
 
-			auto buttonMoveCenter = new QPushButton("Motor Initialize");
-			buttonMoveCenter->setFocusPolicy(Qt::FocusPolicy::NoFocus);
-			buttonMoveCenter->setCheckable(true);
-			buttonMoveCenter->setFixedWidth(150);
-			buttonMoveCenter->setFixedHeight(100);
+			auto buttonInitialize = new QPushButton("Initialize");
+			buttonInitialize->setFocusPolicy(Qt::FocusPolicy::NoFocus);
+			buttonInitialize->setCheckable(true);
+			buttonInitialize->setFixedWidth(150);
+			buttonInitialize->setFixedHeight(100);
+
+			auto buttonEmergency = new QPushButton("EMERGENCY");
+			buttonEmergency->setFocusPolicy(Qt::FocusPolicy::NoFocus);
+			buttonEmergency->setCheckable(true);
+			buttonEmergency->setFixedWidth(150);
+			buttonEmergency->setFixedHeight(100);
+			buttonEmergency->setShortcut(Qt::Key_Space);
 
 			auto layoutLabels = new QVBoxLayout;
 			{
@@ -178,7 +185,7 @@ void Dialog::initialize()
 				}
 			});
 
-			connect(buttonMoveCenter, &QPushButton::clicked, [this](bool checked)
+			connect(buttonInitialize, &QPushButton::clicked, [this](bool checked)
 			{
 				if (checked)
 				{
@@ -207,10 +214,24 @@ void Dialog::initialize()
 				}
 			});
 
+			connect(buttonEmergency, &QPushButton::clicked, [this](bool checked)
+			{
+				for (int i = 0; i < numMotors; i++)
+				{
+					auto command = ACServoMotorHelper::emergency(checked, i + 1);
+					motor.write({ (char*)command.data(), (int)command.size() });
+
+					Sleep(10);
+				}
+
+				motor.read();
+			});
+
 			auto layout = new QHBoxLayout;
 			layout->setAlignment(Qt::AlignLeft);
 			layout->addWidget(buttonConnect);
-			layout->addWidget(buttonMoveCenter);
+			layout->addWidget(buttonInitialize);
+			layout->addWidget(buttonEmergency);
 			layout->addLayout(layoutLabels);
 			layout->addLayout(layoutValues);
 
