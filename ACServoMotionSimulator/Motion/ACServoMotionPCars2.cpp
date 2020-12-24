@@ -94,12 +94,14 @@ bool ACServoMotionPCars2::process(void* arg)
 				angle = max(angle, -range);
 			};
 
-			// Euler angle Y starts from 90 degrees.
-			double radX = pDataLocal->mOrientation[1] > 0 ? pDataLocal->mOrientation[1] : pDataLocal->mOrientation[1] + M_PI * 2;
-			double radY = pDataLocal->mOrientation[0];
+			// Euler angle
+			double x = pDataLocal->mOrientation[0];
+			double y = pDataLocal->mOrientation[1]; // heading
+			double z = pDataLocal->mOrientation[2];
 
-			double roll = (radX * 180 / M_PI) - 90;
-			double pitch = (radY * 180 / M_PI);
+			double roll = (z * 180 / M_PI);
+			double pitch = (x * 180 / M_PI);
+			double yaw = (y * 180 / M_PI);
 
 			angleFilter(roll, 15);
 			angleFilter(pitch, 15);
