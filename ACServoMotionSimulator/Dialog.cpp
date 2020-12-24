@@ -25,6 +25,8 @@ void Dialog::initialize()
 	motionTimer = new QTimer;
 	connect(motionTimer, &QTimer::timeout, [this]()
 	{
+		Sleep(1);
+
 		Vector3 angleMotion;
 
 		if (motionSource)
@@ -35,23 +37,23 @@ void Dialog::initialize()
 			motionSource->position(angleMotion);
 		}
 
-		printf("%f    %f    %f\n", angleMotion.x, angleMotion.y, angleMotion.z);
+		printf("%u    %f    %f    %f\n", GetTickCount(), angleMotion.x, angleMotion.y, angleMotion.z);
 
 
 		if (motor.isConnected() == false)
 			return;
 
-		std::vector<int> motorPositions(numMotors);
+// 		std::vector<int> motorPositions(numMotors);
+// 
+// 		for (int i = 0; i < numMotors; i++)
+// 		{
+// 			bool moving = true;
+// 
+// 			motor.position(i, motorPositions[i], moving);
+// 			motorPositions[i] *= sign;
+// 		}
 
-		for (int i = 0; i < numMotors; i++)
-		{
-			bool moving = true;
-
-			motor.position(i, motorPositions[i], moving);
-			motorPositions[i] *= sign;
-		}
-
-		updateUI(motorPositions);
+		updateUI(currentPositions);
 
 
 		std::vector<int> targetPositions = centerPositions;
@@ -78,18 +80,21 @@ void Dialog::initialize()
 
 		for (int i = 0; i < numMotors; i++)
 		{
-			int position = targetPositions[i] - motorPositions[i];
+			int position = targetPositions[i] - currentPositions[i];
 
 			if (abs(position) < angle)
 				continue;
 
-			if (motorPositions[i] + position < 0 ||
-				motorPositions[i] + position >= limitPositions[i])
+			if (currentPositions[i] + position < 0 ||
+				currentPositions[i] + position >= limitPositions[i])
 				continue;
 
-			int triggerIndex = position > 0 ? 1 : 2;
+			int direction = position > 0 ? 1 : -1;
+			int triggerIndex = direction > 0 ? 1 : 2;
 
 			motor.trigger(triggerIndex, i);
+
+			currentPositions[i] += direction * angle;
 		}
 	});
 
@@ -157,8 +162,8 @@ void Dialog::initialize()
 						return;
 					}
 
-					motor.setPosition(angle, 1, -1, false);
-					motor.setPosition(-angle, 2, -1, false);
+					motor.setPosition(angle * sign, 1, -1, false);
+					motor.setPosition(-angle * sign, 2, -1, false);
 
 					motor.setSpeed(speed, 0);
 					motor.setSpeed(speed, 1);
@@ -333,6 +338,8 @@ bool Dialog::loadOption()
 
 					index++;
 				}
+
+				currentPositions = centerPositions;
 			}
 
 			portName = optionObject["port"].toString();

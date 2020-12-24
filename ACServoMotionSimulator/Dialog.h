@@ -39,6 +39,7 @@ private:
 	int numMotors = 0;
 	std::vector<int> centerPositions;
 	std::vector<int> limitPositions;
+	std::vector<int> currentPositions;
 
 	QString portName;
 	int angle = 5000; // difference
