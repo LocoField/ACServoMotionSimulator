@@ -16,7 +16,7 @@ public:
 
 protected:
 	void initialize();
-	void updateUI();
+	void updateUI(const std::vector<int>& positions);
 
 public:
 	bool loadOption();

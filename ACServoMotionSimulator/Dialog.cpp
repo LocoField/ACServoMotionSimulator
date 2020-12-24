@@ -25,85 +25,77 @@ void Dialog::initialize()
 	motionTimer = new QTimer;
 	connect(motionTimer, &QTimer::timeout, [this]()
 	{
+		Sleep(1);
+
 		Vector3 angleMotion;
 
 		if (motionSource)
 		{
-			Sleep(motionSource->getWaitTime());
-
 			if (motionSource->process(this) == false)
 				return;
 
 			motionSource->position(angleMotion);
 		}
 
-		printf("%f %f\n", angleMotion.x, angleMotion.y);
+		printf("%u    %f    %f    %f\n", GetTickCount(), angleMotion.x, angleMotion.y, angleMotion.z);
+
 
 		if (motor.isConnected() == false)
 			return;
 
-		motor.stop();
+// 		std::vector<int> motorPositions(numMotors);
+// 
+// 		for (int i = 0; i < numMotors; i++)
+// 		{
+// 			bool moving = true;
+// 
+// 			motor.position(i, motorPositions[i], moving);
+// 			motorPositions[i] *= sign;
+// 		}
 
-		for (int i = 0; i < numMotors; i++)
-		{
-			bool moving = true;
-
-			motor.position(i, currentPositions[i], moving);
-			currentPositions[i] *= sign;
-		}
-
-		updateUI();
+		updateUI(currentPositions);
 
 
-		std::vector<int> cycleValues(numMotors);
+		std::vector<int> targetPositions = centerPositions;
 
 		if (numMotors == 2)
 		{
-			std::vector<int> desirePosition = centerPositions;
-
-			desirePosition[0] += (angleMotion.x * angle);
-			desirePosition[1] -= (angleMotion.x * angle);
-			desirePosition[0] -= (angleMotion.y * angle);
-			desirePosition[1] -= (angleMotion.y * angle);
-
-			cycleValues[0] += (desirePosition[0] - currentPositions[0]);
-			cycleValues[1] += (desirePosition[1] - currentPositions[1]);
+			targetPositions[0] += (angleMotion.x * angle);
+			targetPositions[1] -= (angleMotion.x * angle);
+			targetPositions[0] -= (angleMotion.y * angle);
+			targetPositions[1] -= (angleMotion.y * angle);
 		}
 		else if (numMotors == 4)
 		{
-			std::vector<int> desirePosition = centerPositions;
+			targetPositions[0] += (angleMotion.x * angle);
+			targetPositions[1] -= (angleMotion.x * angle);
+			targetPositions[2] += (angleMotion.x * angle);
+			targetPositions[3] -= (angleMotion.x * angle);
 
-			desirePosition[0] += (angleMotion.x * angle);
-			desirePosition[1] -= (angleMotion.x * angle);
-			desirePosition[2] += (angleMotion.x * angle);
-			desirePosition[3] -= (angleMotion.x * angle);
-
-			desirePosition[0] += (angleMotion.y * angle);
-			desirePosition[1] += (angleMotion.y * angle);
-			desirePosition[2] -= (angleMotion.y * angle);
-			desirePosition[3] -= (angleMotion.y * angle);
-
-			cycleValues[0] += (desirePosition[0] - currentPositions[0]);
-			cycleValues[1] += (desirePosition[1] - currentPositions[1]);
-			cycleValues[2] += (desirePosition[2] - currentPositions[2]);
-			cycleValues[3] += (desirePosition[3] - currentPositions[3]);
+			targetPositions[0] += (angleMotion.y * angle);
+			targetPositions[1] += (angleMotion.y * angle);
+			targetPositions[2] -= (angleMotion.y * angle);
+			targetPositions[3] -= (angleMotion.y * angle);
 		}
 
 		for (int i = 0; i < numMotors; i++)
 		{
-			int position = cycleValues[i];
+			int position = targetPositions[i] - currentPositions[i];
+
+			if (abs(position) < angle)
+				continue;
 
 			if (currentPositions[i] + position < 0 ||
 				currentPositions[i] + position >= limitPositions[i])
-			{
-				printf("WARNING: cannot move %d from %d\n", position, currentPositions[i]);
-				position = 0;
-			}
+				continue;
 
-			motor.setPosition(position * sign, i, false);
+			int direction = position > 0 ? 1 : -1;
+			int triggerIndex = direction > 0 ? 1 : 2;
+
+			motor.trigger(triggerIndex, i);
+
+			currentPositions[i] += direction * angle;
 		}
-
-		motor.trigger();
 	});
 
 	{
@@ -177,7 +169,12 @@ void Dialog::initialize()
 						return;
 					}
 
-					motor.setSpeed(speed);
+					motor.setPosition(angle * sign, 1, -1, false);
+					motor.setPosition(-angle * sign, 2, -1, false);
+
+					motor.setSpeed(speed, 0);
+					motor.setSpeed(speed, 1);
+					motor.setSpeed(speed, 2);
 				}
 				else
 				{
@@ -191,7 +188,7 @@ void Dialog::initialize()
 				{
 					for (int i = 0; i < numMotors; i++)
 					{
-						motor.setPosition(centerPositions[i] * sign, i);
+						motor.setPosition(centerPositions[i] * sign, 0, i);
 					}
 				}
 				else
@@ -320,12 +317,12 @@ void Dialog::initialize()
 	}
 }
 
-void Dialog::updateUI()
+void Dialog::updateUI(const std::vector<int>& positions)
 {
 	for (int i = 0; i < numMotors; i++)
 	{
 		auto valueMotorPosition = findChild<QLabel*>(QString("valueMotorPosition%1").arg(i));
-		valueMotorPosition->setText(QString::number(currentPositions[i]));
+		valueMotorPosition->setText(QString::number(positions[i]));
 	}
 }
 
@@ -354,7 +351,6 @@ bool Dialog::loadOption()
 				numMotors = optionArray.size();
 				centerPositions.resize(numMotors);
 				limitPositions.resize(numMotors);
-				currentPositions.resize(numMotors);
 
 				int index = 0;
 				for (auto it = optionArray.begin(); it != optionArray.end(); ++it)
@@ -365,6 +361,8 @@ bool Dialog::loadOption()
 
 					index++;
 				}
+
+				currentPositions = centerPositions;
 			}
 
 			portName = optionObject["port"].toString();
