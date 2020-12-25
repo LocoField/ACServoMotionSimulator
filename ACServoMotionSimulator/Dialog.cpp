@@ -4,6 +4,7 @@
 
 #include "Motion/ACServoMotionKeyboard.h"
 #include "Motion/ACServoMotionPCars2.h"
+#include "Motion/ACServoMotionNoLimits2.h"
 
 #define DIALOG_TITLE "LocoField Motion Simulator"
 
@@ -433,6 +434,9 @@ void Dialog::addMotionModules()
 
 	ACServoMotionPCars2* motionPCars2 = new ACServoMotionPCars2;
 	addModule(motionPCars2);
+
+	ACServoMotionNoLimits2* motionNoLimits2 = new ACServoMotionNoLimits2;
+	addModule(motionNoLimits2);
 
 	// dynamic load
 	

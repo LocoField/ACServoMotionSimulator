@@ -99,6 +99,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Motion\ACServoMotionNoLimits2.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="Motion\ACServoMotionPCars2.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
@@ -115,6 +119,7 @@
     <ClInclude Include="Dialog.h" />
     <ClInclude Include="Motion\ACServoMotionBase.h" />
     <ClInclude Include="Motion\ACServoMotionKeyboard.h" />
+    <ClInclude Include="Motion\ACServoMotionNoLimits2.h" />
     <ClInclude Include="Motion\ACServoMotionPCars2.h" />
     <ClInclude Include="Motion\PCars2Data.h" />
     <ClInclude Include="SerialPort.h" />
