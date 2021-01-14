@@ -106,24 +106,24 @@ void Dialog::initialize()
 		motorLayout->addWidget(groupBox);
 
 		{
-			auto buttonConnect = new QPushButton("Connect");
-			buttonConnect->setFocusPolicy(Qt::FocusPolicy::NoFocus);
-			buttonConnect->setCheckable(true);
-			buttonConnect->setFixedWidth(150);
-			buttonConnect->setFixedHeight(100);
+			auto buttonMotorConnect = new QPushButton("Connect");
+			buttonMotorConnect->setFocusPolicy(Qt::FocusPolicy::NoFocus);
+			buttonMotorConnect->setCheckable(true);
+			buttonMotorConnect->setFixedWidth(150);
+			buttonMotorConnect->setFixedHeight(100);
 
-			auto buttonInitialize = new QPushButton("Initialize");
-			buttonInitialize->setFocusPolicy(Qt::FocusPolicy::NoFocus);
-			buttonInitialize->setCheckable(true);
-			buttonInitialize->setFixedWidth(150);
-			buttonInitialize->setFixedHeight(100);
+			auto buttonMotorStart = new QPushButton("Start");
+			buttonMotorStart->setFocusPolicy(Qt::FocusPolicy::NoFocus);
+			buttonMotorStart->setCheckable(true);
+			buttonMotorStart->setFixedWidth(150);
+			buttonMotorStart->setFixedHeight(100);
 
-			auto buttonEmergency = new QPushButton("EMERGENCY");
-			buttonEmergency->setFocusPolicy(Qt::FocusPolicy::NoFocus);
-			buttonEmergency->setCheckable(true);
-			buttonEmergency->setFixedWidth(150);
-			buttonEmergency->setFixedHeight(100);
-			buttonEmergency->setShortcut(Qt::Key_Space);
+			auto buttonMotorEmergency = new QPushButton("EMERGENCY");
+			buttonMotorEmergency->setFocusPolicy(Qt::FocusPolicy::NoFocus);
+			buttonMotorEmergency->setCheckable(true);
+			buttonMotorEmergency->setFixedWidth(150);
+			buttonMotorEmergency->setFixedHeight(100);
+			buttonMotorEmergency->setShortcut(Qt::Key_Space);
 
 			auto layoutLabels = new QVBoxLayout;
 			{
@@ -157,7 +157,7 @@ void Dialog::initialize()
 				}
 			}
 
-			connect(buttonConnect, &QPushButton::toggled, [this, buttonConnect](bool checked)
+			connect(buttonMotorConnect, &QPushButton::toggled, [this, buttonMotorConnect](bool checked)
 			{
 				if (checked)
 				{
@@ -165,7 +165,7 @@ void Dialog::initialize()
 
 					if (connect == false)
 					{
-						buttonConnect->setChecked(false);
+						buttonMotorConnect->setChecked(false);
 
 						return;
 					}
@@ -176,14 +176,18 @@ void Dialog::initialize()
 					motor.setSpeed(speed, 0);
 					motor.setSpeed(speed, 1);
 					motor.setSpeed(speed, 2);
+
+					buttonMotorConnect->setText("Disconnect");
 				}
 				else
 				{
 					motor.disconnect();
+
+					buttonMotorConnect->setText("Connect");
 				}
 			});
 
-			connect(buttonInitialize, &QPushButton::clicked, [this](bool checked)
+			connect(buttonMotorStart, &QPushButton::clicked, [this, buttonMotorStart](bool checked)
 			{
 				if (checked)
 				{
@@ -191,6 +195,8 @@ void Dialog::initialize()
 					{
 						motor.setPosition(centerPositions[i] * sign, 0, i);
 					}
+
+					buttonMotorStart->setText("Stop");
 				}
 				else
 				{
@@ -209,10 +215,12 @@ void Dialog::initialize()
 
 						i++;
 					}
+
+					buttonMotorStart->setText("Start");
 				}
 			});
 
-			connect(buttonEmergency, &QPushButton::clicked, [this](bool checked)
+			connect(buttonMotorEmergency, &QPushButton::clicked, [this](bool checked)
 			{
 				for (int i = 0; i < numMotors; i++)
 				{
@@ -227,9 +235,9 @@ void Dialog::initialize()
 
 			auto layout = new QHBoxLayout;
 			layout->setAlignment(Qt::AlignLeft);
-			layout->addWidget(buttonConnect);
-			layout->addWidget(buttonInitialize);
-			layout->addWidget(buttonEmergency);
+			layout->addWidget(buttonMotorConnect);
+			layout->addWidget(buttonMotorStart);
+			layout->addWidget(buttonMotorEmergency);
 			layout->addLayout(layoutLabels);
 			layout->addLayout(layoutValues);
 
