@@ -163,5 +163,8 @@ bool ACServoMotionNoLimits2::process(void* arg)
 	angle_.x = telemetry.gforce_x * 20;
 	angle_.y = telemetry.gforce_z * 20;
 
+	float heave = telemetry.gforce_y - 1;
+	axis_.ll = axis_.lr = axis_.rl = axis_.rr = -heave;
+
 	return true;
 }
