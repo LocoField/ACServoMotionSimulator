@@ -34,6 +34,7 @@ void Dialog::initialize()
 		Sleep(1);
 
 		Vector3 angleMotion;
+		Vector4 axisMotion; // applied 4-axis system only
 
 		if (motionSource)
 		{
@@ -41,11 +42,12 @@ void Dialog::initialize()
 				return;
 
 			motionSource->angle(angleMotion);
+			motionSource->axis(axisMotion);
 		}
 
-		printf("%u    %f    %f    %f\n", GetTickCount(), angleMotion.x, angleMotion.y, angleMotion.z);
-
-		updateUI(currentPositions);
+		printf("%u\t%2.5f    %2.5f    %2.5f\n\t\t%2.5f    %2.5f    %2.5f    %2.5f\n",
+			GetTickCount(), angleMotion.x, angleMotion.y, angleMotion.z,
+			axisMotion.ll, axisMotion.lr, axisMotion.rl, axisMotion.rr);
 
 
 		std::vector<int> targetPositions(numMotors, center);
@@ -88,6 +90,8 @@ void Dialog::initialize()
 
 			currentPositions[i] += direction * angle;
 		}
+
+		updateUI(currentPositions);
 	});
 
 	{
