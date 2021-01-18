@@ -22,4 +22,7 @@ protected:
 	const PCars2Data* pDataMapped = nullptr;
 	PCars2Data* pDataLocal = nullptr;
 
+	bool suspensionInitialized = false;
+	float suspensionCenter[4];
+
 };

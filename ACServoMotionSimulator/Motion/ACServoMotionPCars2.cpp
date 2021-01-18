@@ -83,10 +83,22 @@ bool ACServoMotionPCars2::process(void* arg)
 			angle_ = Vector3();
 			axis_ = Vector4();
 
+			suspensionInitialized = false;
+
 			break;
 		}
 		case GAME_INGAME_PLAYING:
 		{
+			if (suspensionInitialized == false)
+			{
+				suspensionInitialized = true;
+
+				for (int i = 0; i < TYRE_MAX; i++)
+				{
+					suspensionCenter[i] = pDataLocal->mSuspensionTravel[i];
+				}
+			}
+
 			auto angleFilter = [](double& angle, double range)
 			{
 				angle = min(angle, range);
@@ -107,6 +119,12 @@ bool ACServoMotionPCars2::process(void* arg)
 
 			angle_.x = (float)roll;
 			angle_.y = (float)pitch;
+
+			// Suspension position
+			axis_.ll = pDataLocal->mSuspensionTravel[0] - suspensionCenter[0];
+			axis_.lr = pDataLocal->mSuspensionTravel[1] - suspensionCenter[1];
+			axis_.rl = pDataLocal->mSuspensionTravel[2] - suspensionCenter[2];
+			axis_.rr = pDataLocal->mSuspensionTravel[3] - suspensionCenter[3];
 
 			break;
 		}

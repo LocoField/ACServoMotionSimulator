@@ -70,6 +70,11 @@ void Dialog::initialize()
 			targetPositions[1] += (angleMotion.y * angle);
 			targetPositions[2] -= (angleMotion.y * angle);
 			targetPositions[3] -= (angleMotion.y * angle);
+
+			targetPositions[0] += axisMotion.ll * 1000 * 2000; // meter * motor rotation by pitch (10000 / 5)
+			targetPositions[1] += axisMotion.lr * 1000 * 2000;
+			targetPositions[2] += axisMotion.rl * 1000 * 2000;
+			targetPositions[3] += axisMotion.rr * 1000 * 2000;
 		}
 
 		for (int i = 0; i < numMotors; i++)
