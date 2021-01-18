@@ -94,9 +94,12 @@ qint64 SerialPort::write(const QByteArray& data)
 
 QByteArray SerialPort::read(int timeout)
 {
-	if (waitForReadyRead(timeout))
+	if (isConnected())
 	{
-		return __super::readAll();
+		if (waitForReadyRead(timeout))
+		{
+			return __super::readAll();
+		}
 	}
 
 	return QByteArray();
