@@ -160,8 +160,8 @@ bool ACServoMotionNoLimits2::process(void* arg)
 	ConvertEndianness(telemetry.gforce_y);
 	ConvertEndianness(telemetry.gforce_z);
 
-	angle.x = telemetry.gforce_x * 20;
-	angle.y = telemetry.gforce_z * 20;
+	angle_.x = telemetry.gforce_x * 20;
+	angle_.y = telemetry.gforce_z * 20;
 
 	return true;
 }

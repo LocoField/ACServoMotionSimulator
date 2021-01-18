@@ -11,6 +11,14 @@ struct Vector3
 	float z = 0;
 };
 
+struct Vector4
+{
+	float ll = 0;
+	float lr = 0;
+	float rl = 0;
+	float rr = 0;
+};
+
 class ACServoMotionBase
 {
 public:
@@ -20,7 +28,8 @@ public:
 public:
 	virtual char* getMotionName() abstract;
 
-	virtual void position(Vector3& angle) { angle = this->angle; }
+	virtual void angle(Vector3& angle) { angle = angle_; }
+	virtual void axis(Vector4& axis) { axis = axis_; }
 
 	virtual bool start() { return true; }
 	virtual void stop() {}
@@ -28,6 +37,7 @@ public:
 	virtual bool process(void* arg) abstract;
 
 protected:
-	Vector3 angle;
+	Vector3 angle_; // roll pitch yaw
+	Vector4 axis_; // axis
 
 };

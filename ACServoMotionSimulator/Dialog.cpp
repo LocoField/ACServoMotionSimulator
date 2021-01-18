@@ -40,7 +40,7 @@ void Dialog::initialize()
 			if (motionSource->process(this) == false)
 				return;
 
-			motionSource->position(angleMotion);
+			motionSource->angle(angleMotion);
 		}
 
 		printf("%u    %f    %f    %f\n", GetTickCount(), angleMotion.x, angleMotion.y, angleMotion.z);

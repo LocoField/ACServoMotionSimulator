@@ -71,10 +71,6 @@ bool ACServoMotionPCars2::process(void* arg)
 
 	memcpy(pDataLocal, pDataMapped, sizeof(PCars2Data));
 
-	angle.x = 0;
-	angle.y = 0;
-	angle.z = 0;
-
 	switch (pDataLocal->mGameState)
 	{
 		case GAME_INGAME_PAUSED:
@@ -84,6 +80,9 @@ bool ACServoMotionPCars2::process(void* arg)
 		case GAME_EXITED:
 		case GAME_INGAME_RESTARTING:
 		{
+			angle_ = Vector3();
+			axis_ = Vector4();
+
 			break;
 		}
 		case GAME_INGAME_PLAYING:
@@ -106,8 +105,8 @@ bool ACServoMotionPCars2::process(void* arg)
 			angleFilter(roll, 15);
 			angleFilter(pitch, 15);
 
-			angle.x = (float)roll;
-			angle.y = (float)pitch;
+			angle_.x = (float)roll;
+			angle_.y = (float)pitch;
 
 			break;
 		}

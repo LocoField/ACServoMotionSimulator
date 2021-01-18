@@ -7,8 +7,8 @@ char* ACServoMotionKeyboard::getMotionName()
 
 bool ACServoMotionKeyboard::process(void* arg)
 {
-	angle.x = rollMoved * 10;
-	angle.y = pitchMoved * 10;
+	angle_.x = rollMoved * 10;
+	angle_.y = pitchMoved * 10;
 
 	return true;
 }
