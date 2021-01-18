@@ -10,11 +10,16 @@
 
 Dialog::Dialog()
 {
-	loadOption();
+	bool retval = loadOption();
 
 	initialize();
 
 	addMotionModules();
+
+	if (retval)
+		updateUI(currentPositions);
+	else
+		setDisabled(true);
 }
 
 Dialog::~Dialog()
@@ -40,24 +45,10 @@ void Dialog::initialize()
 
 		printf("%u    %f    %f    %f\n", GetTickCount(), angleMotion.x, angleMotion.y, angleMotion.z);
 
-
-		if (motor.isConnected() == false)
-			return;
-
-// 		std::vector<int> motorPositions(numMotors);
-// 
-// 		for (int i = 0; i < numMotors; i++)
-// 		{
-// 			bool moving = true;
-// 
-// 			motor.position(i, motorPositions[i], moving);
-// 			motorPositions[i] *= sign;
-// 		}
-
 		updateUI(currentPositions);
 
 
-		std::vector<int> targetPositions = centerPositions;
+		std::vector<int> targetPositions(numMotors, center);
 
 		if (numMotors == 2)
 		{
@@ -87,7 +78,7 @@ void Dialog::initialize()
 				continue;
 
 			if (currentPositions[i] + position < 0 ||
-				currentPositions[i] + position >= limitPositions[i])
+				currentPositions[i] + position >= limit)
 				continue;
 
 			int direction = position > 0 ? 1 : -1;
@@ -193,7 +184,10 @@ void Dialog::initialize()
 				{
 					for (int i = 0; i < numMotors; i++)
 					{
-						motor.setPosition(centerPositions[i] * sign, 0, i);
+						if (motor.setPosition(center * sign, 0, i) == false)
+							continue;
+
+						currentPositions[i] = center;
 					}
 
 					buttonMotorStart->setText("Stop");
@@ -318,7 +312,8 @@ void Dialog::initialize()
 		QAction* actionLoadOption = new QAction("Load");
 		connect(actionLoadOption, &QAction::triggered, [&]()
 		{
-			loadOption();
+			if (loadOption() == false)
+				setDisabled(true);
 		});
 
 		menuView->addAction(actionLoadOption);
@@ -337,7 +332,7 @@ void Dialog::updateUI(const std::vector<int>& positions)
 
 bool Dialog::loadOption()
 {
-	bool retval = true;
+	bool retval = false;
 
 	QString filepath = QCoreApplication::applicationDirPath();
 	QFile loadFile(filepath + "/option.txt");
@@ -345,49 +340,44 @@ bool Dialog::loadOption()
 	if (loadFile.open(QIODevice::ReadOnly))
 	{
 		QJsonDocument doc = QJsonDocument::fromJson(loadFile.readAll());
-		if (doc.isNull())
-		{
-			retval = false;
-		}
-		else
+
+		if (doc.isNull() == false)
 		{
 			QJsonObject optionObject = doc.object();
 
 			angle = optionObject["angle"].toInt();
-
-			QJsonArray optionArray = optionObject["motors"].toArray();
-			{
-				numMotors = optionArray.size();
-				centerPositions.resize(numMotors);
-				limitPositions.resize(numMotors);
-
-				int index = 0;
-				for (auto it = optionArray.begin(); it != optionArray.end(); ++it)
-				{
-					QJsonObject object = it->toObject();
-					centerPositions[index] = object["offset"].toInt();
-					limitPositions[index] = object["limit"].toInt();
-
-					index++;
-				}
-
-				currentPositions = centerPositions;
-			}
-
+			center = optionObject["center"].toInt();
+			limit = optionObject["limit"].toInt();
+			numMotors = optionObject["numMotors"].toInt();
 			portName = optionObject["port"].toString();
 			sign = optionObject["sign"].toInt();
 			speed = optionObject["speed"].toInt();
+
+			retval = true;
 		}
 
 		loadFile.close();
 	}
-	else
+
 	{
-		printf("ERROR: loatOption() failed.\n");
-		retval = false;
+		if (angle == 0 ||
+			center == limit ||
+			numMotors == 0 ||
+			portName.isEmpty() ||
+			sign == 0 || 
+			speed == 0)
+			retval = false;
 	}
 
-	return retval;
+	if (retval == false)
+	{
+		printf("ERROR: loadOption() failed.\n");
+		return false;
+	}
+
+	currentPositions.assign(numMotors, 0);
+
+	return true;
 }
 
 bool Dialog::saveOption()
@@ -397,19 +387,11 @@ bool Dialog::saveOption()
 
 	QJsonDocument doc;
 	QJsonObject optionObject;
-	QJsonArray optionArray;
-
-	for (int i = 0; i < numMotors; i++)
-	{
-		QJsonObject object;
-		object["offset"] = centerPositions[i];
-		object["limit"] = limitPositions[i];
-
-		optionArray.insert(i, object);
-	}
 
 	optionObject["angle"] = angle;
-	optionObject["motors"] = optionArray;
+	optionObject["center"] = center;
+	optionObject["limit"] = limit;
+	optionObject["numMotors"] = numMotors;
 	optionObject["port"] = portName;
 	optionObject["sign"] = sign;
 	optionObject["speed"] = speed;

@@ -36,14 +36,14 @@ private:
 
 	ACServoMotorSerial motor;
 
-	int numMotors = 0;
-	std::vector<int> centerPositions;
-	std::vector<int> limitPositions;
 	std::vector<int> currentPositions;
 
-	QString portName;
 	int angle = 5000; // difference
-	int speed = 1000; // rpm
+	int center = 0;
+	int limit = 0;
+	int numMotors = 0;
+	QString portName;
 	int sign = 1; // 1 or -1
+	int speed = 1000; // rpm
 
 };
