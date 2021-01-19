@@ -106,13 +106,13 @@ void Dialog::initialize()
 		motorLayout->addWidget(groupBox);
 
 		{
-			auto buttonMotorConnect = new QPushButton("Connect");
+			auto buttonMotorConnect = new QPushButton("1. Connect");
 			buttonMotorConnect->setFocusPolicy(Qt::FocusPolicy::NoFocus);
 			buttonMotorConnect->setCheckable(true);
 			buttonMotorConnect->setFixedWidth(150);
 			buttonMotorConnect->setFixedHeight(100);
 
-			auto buttonMotorStart = new QPushButton("Start");
+			auto buttonMotorStart = new QPushButton("2. Start");
 			buttonMotorStart->setFocusPolicy(Qt::FocusPolicy::NoFocus);
 			buttonMotorStart->setCheckable(true);
 			buttonMotorStart->setFixedWidth(150);
@@ -127,10 +127,6 @@ void Dialog::initialize()
 
 			auto layoutLabels = new QVBoxLayout;
 			{
-				auto labelMotorSpeed = new QLabel("Speed\t: ");
-
-				layoutLabels->addWidget(labelMotorSpeed);
-
 				for (int i = 0; i < numMotors; i++)
 				{
 					auto labelMotorPosition = new QLabel(QString("Motor %1\t: ").arg(i + 1));
@@ -141,11 +137,6 @@ void Dialog::initialize()
 
 			auto layoutValues = new QVBoxLayout;
 			{
-				auto valueMotorSpeed = new QLabel(QString::number(speed));
-				valueMotorSpeed->setAlignment(Qt::AlignVCenter | Qt::AlignRight);
-
-				layoutValues->addWidget(valueMotorSpeed);
-
 				for (int i = 0; i < numMotors; i++)
 				{
 					auto valueMotorPosition = new QLabel("0");
@@ -183,7 +174,7 @@ void Dialog::initialize()
 				{
 					motor.disconnect();
 
-					buttonMotorConnect->setText("Connect");
+					buttonMotorConnect->setText("1. Connect");
 				}
 			});
 
@@ -219,7 +210,7 @@ void Dialog::initialize()
 						i++;
 					}
 
-					buttonMotorStart->setText("Start");
+					buttonMotorStart->setText("2. Start");
 				}
 			});
 
@@ -260,7 +251,7 @@ void Dialog::initialize()
 			listMotionSource->setFixedWidth(200);
 			listMotionSource->setFixedHeight(100);
 
-			auto buttonStart = new QPushButton("Start");
+			auto buttonStart = new QPushButton("3. Start");
 			buttonStart->setFocusPolicy(Qt::FocusPolicy::NoFocus);
 			buttonStart->setCheckable(true);
 			buttonStart->setFixedWidth(100);
@@ -285,7 +276,7 @@ void Dialog::initialize()
 				}
 				else
 				{
-					buttonStart->setText("Start");
+					buttonStart->setText("3. Start");
 
 					motionSource->stop();
 
