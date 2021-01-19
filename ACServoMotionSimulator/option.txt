@@ -1,0 +1,24 @@
+{
+    "default":
+    {
+        "angle": 5000,
+        "center": 100000,
+        "gain": 1,
+        "limit": 220000,
+        "numMotors": 2,
+        "port": "COM13",
+        "sign": 1,
+        "speed": 200
+    },
+    "Keyboard":
+    {
+        "angle": 10000,
+        "gain": 10,
+        "speed": 300
+    },
+    "No Limits 2":
+    {
+        "gain": 100,
+        "speed": 500
+    }
+}

@@ -43,6 +43,10 @@ void Dialog::initialize()
 
 			motionSource->angle(angleMotion);
 			motionSource->axis(axisMotion);
+
+			angleMotion.x *= gain;
+			angleMotion.y *= gain;
+			angleMotion.z *= gain;
 		}
 
 		printf("%u\t%2.5f    %2.5f    %2.5f\n\t\t%2.5f    %2.5f    %2.5f    %2.5f\n",
@@ -165,8 +169,6 @@ void Dialog::initialize()
 					motor.setPosition(-angle * sign, 2, -1, false);
 
 					motor.setSpeed(speed, 0);
-					motor.setSpeed(speed, 1);
-					motor.setSpeed(speed, 2);
 
 					buttonMotorConnect->setText("Disconnect");
 				}
@@ -271,6 +273,30 @@ void Dialog::initialize()
 						return;
 					}
 
+					QString motionName = listMotionSource->currentItem()->text();
+					if (motionOptions.find(motionName) != motionOptions.end())
+					{
+						QJsonObject optionObject = motionOptions[motionName];
+
+						if (optionObject.find("angle") != optionObject.end())
+						{
+							angle = optionObject["angle"].toInt();
+						}
+
+						if (optionObject.find("gain") != optionObject.end())
+						{
+							gain = optionObject["gain"].toDouble();
+						}
+
+						if (optionObject.find("speed") != optionObject.end())
+						{
+							speed = optionObject["speed"].toInt();
+
+							motor.setSpeed(speed, 1);
+							motor.setSpeed(speed, 2);
+						}
+					}
+
 					listMotionSource->setEnabled(false);
 					motionTimer->start();
 				}
@@ -278,10 +304,18 @@ void Dialog::initialize()
 				{
 					buttonStart->setText("3. Start");
 
+					motionTimer->stop();
 					motionSource->stop();
 
+					QJsonObject optionObject = motionOptions["default"];
+					angle = optionObject["angle"].toInt();
+					gain = optionObject["gain"].toDouble();
+					speed = optionObject["speed"].toInt();
+
+					motor.setSpeed(speed, 1);
+					motor.setSpeed(speed, 2);
+
 					listMotionSource->setEnabled(true);
-					motionTimer->stop();
 				}
 			});
 
@@ -332,41 +366,70 @@ void Dialog::updateUI(const std::vector<int>& positions)
 
 bool Dialog::loadOption()
 {
-	bool retval = false;
+	bool retval = true;
 
 	QString filepath = QCoreApplication::applicationDirPath();
 	QFile loadFile(filepath + "/option.txt");
 
-	if (loadFile.open(QIODevice::ReadOnly))
+	if (loadFile.open(QIODevice::ReadOnly) == false)
+	{
+		retval = false;
+	}
+	else
 	{
 		QJsonDocument doc = QJsonDocument::fromJson(loadFile.readAll());
 
-		if (doc.isNull() == false)
+		if (doc.isNull())
+		{
+			retval = false;
+		}
+		else
 		{
 			QJsonObject optionObject = doc.object();
+			auto optionList = optionObject.keys();
 
-			angle = optionObject["angle"].toInt();
-			center = optionObject["center"].toInt();
-			limit = optionObject["limit"].toInt();
-			numMotors = optionObject["numMotors"].toInt();
-			portName = optionObject["port"].toString();
-			sign = optionObject["sign"].toInt();
-			speed = optionObject["speed"].toInt();
+			if (optionList.contains("default") == false)
+			{
+				retval = false;
+			}
+			else
+			{
+				QJsonObject defaultOption = optionObject["default"].toObject();
+				auto defaultOptionList = defaultOption.keys();
 
-			retval = true;
+				if (defaultOptionList.contains("angle") &&
+					defaultOptionList.contains("center") &&
+					defaultOptionList.contains("gain") &&
+					defaultOptionList.contains("limit") &&
+					defaultOptionList.contains("numMotors") &&
+					defaultOptionList.contains("port") &&
+					defaultOptionList.contains("sign") &&
+					defaultOptionList.contains("speed"))
+				{
+					angle = defaultOption["angle"].toInt();
+					center = defaultOption["center"].toInt();
+					gain = defaultOption["gain"].toDouble();
+					limit = defaultOption["limit"].toInt();
+					numMotors = defaultOption["numMotors"].toInt();
+					portName = defaultOption["port"].toString();
+					sign = defaultOption["sign"].toInt();
+					speed = defaultOption["speed"].toInt();
+				}
+				else
+				{
+					retval = false;
+				}
+
+				motionOptions.clear();
+
+				for (auto it = optionList.cbegin(); it != optionList.cend(); ++it)
+				{
+					motionOptions.insert({ *it, optionObject[*it].toObject() });
+				}
+			}
 		}
 
 		loadFile.close();
-	}
-
-	{
-		if (angle == 0 ||
-			center == limit ||
-			numMotors == 0 ||
-			portName.isEmpty() ||
-			sign == 0 || 
-			speed == 0)
-			retval = false;
 	}
 
 	if (retval == false)
@@ -375,33 +438,7 @@ bool Dialog::loadOption()
 		return false;
 	}
 
-	currentPositions.assign(numMotors, 0);
-
-	return true;
-}
-
-bool Dialog::saveOption()
-{
-	QString filepath = QCoreApplication::applicationDirPath();
-	QFile saveFile(filepath + "/option.txt");
-
-	QJsonDocument doc;
-	QJsonObject optionObject;
-
-	optionObject["angle"] = angle;
-	optionObject["center"] = center;
-	optionObject["limit"] = limit;
-	optionObject["numMotors"] = numMotors;
-	optionObject["port"] = portName;
-	optionObject["sign"] = sign;
-	optionObject["speed"] = speed;
-
-	if (saveFile.open(QIODevice::WriteOnly | QIODevice::Truncate) == false)
-		return false;
-
-	doc.setObject(optionObject);
-	saveFile.write(doc.toJson(QJsonDocument::JsonFormat::Indented));
-	saveFile.close();
+	currentPositions.resize(numMotors);
 
 	return true;
 }

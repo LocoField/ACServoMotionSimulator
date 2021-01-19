@@ -20,7 +20,6 @@ protected:
 
 public:
 	bool loadOption();
-	bool saveOption();
 
 	void addMotionModules();
 
@@ -33,6 +32,7 @@ private:
 
 	std::vector<ACServoMotionBase*> motionSources;
 	ACServoMotionBase* motionSource = nullptr;
+	std::map<QString, QJsonObject> motionOptions;
 
 	ACServoMotorSerial motor;
 
@@ -40,6 +40,7 @@ private:
 
 	int angle = 5000; // difference
 	int center = 0;
+	double gain = 1;
 	int limit = 0;
 	int numMotors = 0;
 	QString portName;
