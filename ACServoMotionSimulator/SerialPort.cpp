@@ -87,9 +87,14 @@ std::vector<unsigned char> SerialPort::writeAndRead(const std::vector<unsigned c
 
 qint64 SerialPort::write(const QByteArray& data)
 {
-	qint64 retval = __super::write(data);
-	waitForBytesWritten();
-	return retval;
+	if (isConnected())
+	{
+		qint64 retval = __super::write(data);
+		waitForBytesWritten();
+		return retval;
+	}
+
+	return 0;
 }
 
 QByteArray SerialPort::read(int timeout)
