@@ -156,15 +156,72 @@ bool ACServoMotionNoLimits2::process(void* arg)
 	last_rendered_frame = telemetry.rendered_frame;
 
 
-	ConvertEndianness(telemetry.gforce_x);
-	ConvertEndianness(telemetry.gforce_y);
-	ConvertEndianness(telemetry.gforce_z);
+	ConvertEndianness(telemetry.rotation_x);
+	ConvertEndianness(telemetry.rotation_y);
+	ConvertEndianness(telemetry.rotation_z);
+	ConvertEndianness(telemetry.rotation_w);
 
-	angle_.x = telemetry.gforce_x * 20;
-	angle_.y = telemetry.gforce_z * 20;
+	double qx = telemetry.rotation_x;
+	double qy = telemetry.rotation_y;
+	double qz = telemetry.rotation_z;
+	double qw = telemetry.rotation_w;
 
-	float heave = telemetry.gforce_y - 1;
-	axis_.ll = axis_.lr = axis_.rl = axis_.rr = -heave;
+	double r[9];
+	{
+		double tx = 2*qx;
+		double ty = 2*qy;
+		double tz = 2*qz;
+		double twx = tx*qw;
+		double twy = ty*qw;
+		double twz = tz*qw;
+		double txx = tx*qx;
+		double txy = ty*qx;
+		double txz = tz*qx;
+		double tyy = ty*qy;
+		double tyz = tz*qy;
+		double tzz = tz*qz;
+
+		r[0] = 1 - (tyy + tzz);
+		r[1] = txy - twz;
+		r[2] = txz + twy;
+		r[3] = txy + twz;
+		r[4] = 1 - (txx + tzz);
+		r[5] = tyz - twx;
+		r[6] = txz - twy;
+		r[7] = tyz + twx;
+		r[8] = 1 - (txx + tyy);
+	}
+
+	// Rx(¥÷), Ry(¥è), Rz(¥õ)
+	double theta, psi, phi;
+
+	theta = -asin(r[6]);
+
+	if (isnan(theta) == false)
+	{
+		psi = atan2(r[7] / cos(theta), r[8] / cos(theta));
+		phi = atan2(r[3] / cos(theta), r[0] / cos(theta));
+	}
+	else
+	{
+		printf("phi = 0 : ");
+		phi = 0;
+
+		if (r[6] < 0)
+		{
+			theta = M_PI_2;
+			psi = atan2(r[1], r[2]);
+		}
+		else
+		{
+			theta = -M_PI_2;
+			psi = atan2(-r[1], -r[2]);
+		}
+	}
+
+	angle_.x = psi * 180 / M_PI;
+	angle_.y = theta * 180 / M_PI;
+	angle_.z = phi * 180 / M_PI;
 
 	return true;
 }
