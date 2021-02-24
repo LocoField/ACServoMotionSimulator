@@ -22,11 +22,11 @@ public:
 	bool loadOption();
 
 	void addMotionModules();
+	void clearMotionModules();
 
 private:
 	QVBoxLayout* mainLayout;
-	QVBoxLayout* motorLayout;
-	QVBoxLayout* controllerLayout;
+	QWidget* mainWidget;
 
 	QTimer* motionTimer;
 

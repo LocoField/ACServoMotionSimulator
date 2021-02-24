@@ -19,11 +19,12 @@ Dialog::Dialog()
 	if (retval)
 		updateUI(currentPositions);
 	else
-		setDisabled(true);
+		mainWidget->setDisabled(true);
 }
 
 Dialog::~Dialog()
 {
+	clearMotionModules();
 }
 
 void Dialog::initialize()
@@ -103,10 +104,9 @@ void Dialog::initialize()
 		updateUI(currentPositions);
 	});
 
+	auto motorLayout = new QVBoxLayout;
 	{
 		auto groupBox = new QGroupBox("Motor");
-
-		motorLayout = new QVBoxLayout;
 		motorLayout->addWidget(groupBox);
 
 		{
@@ -241,10 +241,9 @@ void Dialog::initialize()
 		}
 	}
 
+	auto controllerLayout = new QVBoxLayout;
 	{
 		auto groupBox = new QGroupBox("Controller");
-
-		controllerLayout = new QVBoxLayout;
 		controllerLayout->addWidget(groupBox);
 
 		{
@@ -328,9 +327,16 @@ void Dialog::initialize()
 		}
 	}
 
-	mainLayout = new QVBoxLayout(this);
+	auto mainLayout = new QVBoxLayout;
 	mainLayout->addLayout(motorLayout);
 	mainLayout->addLayout(controllerLayout);
+
+	mainWidget = new QWidget;
+	mainWidget->setLayout(mainLayout);
+
+	mainLayout = new QVBoxLayout(this);
+	mainLayout->addWidget(mainWidget);
+
 
 	setMinimumWidth(600);
 
@@ -346,8 +352,17 @@ void Dialog::initialize()
 		QAction* actionLoadOption = new QAction("Load");
 		connect(actionLoadOption, &QAction::triggered, [&]()
 		{
-			if (loadOption() == false)
-				setDisabled(true);
+			if (loadOption())
+			{
+				clearMotionModules();
+				addMotionModules();
+
+				mainWidget->setEnabled(true);
+			}
+			else
+			{
+				mainWidget->setDisabled(true);
+			}
 		});
 
 		menuView->addAction(actionLoadOption);
@@ -469,4 +484,17 @@ void Dialog::addMotionModules()
 	
 
 	listMotionSource->setCurrentRow(0);
+}
+
+void Dialog::clearMotionModules()
+{
+	auto listMotionSource = findChild<QListWidget*>("listMotionSource");
+	listMotionSource->clear();
+
+	for (auto motion : motionSources)
+	{
+		delete motion;
+	}
+
+	motionSources.clear();
 }
