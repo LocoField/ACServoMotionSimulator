@@ -16,9 +16,8 @@
         "gain": 10,
         "speed": 300
     },
-    "No Limits 2":
+    "X-Plane 11":
     {
-        "gain": 100,
-        "speed": 500
+        "path": ""
     }
 }

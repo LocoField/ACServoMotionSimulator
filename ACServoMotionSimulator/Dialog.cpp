@@ -5,6 +5,7 @@
 #include "Motion/ACServoMotionKeyboard.h"
 #include "Motion/ACServoMotionPCars2.h"
 #include "Motion/ACServoMotionNoLimits2.h"
+#include "Motion/ACServoMotionXPlane11.h"
 
 #define DIALOG_TITLE "LocoField Motion Simulator"
 
@@ -471,14 +472,29 @@ void Dialog::addMotionModules()
 
 	// default module
 	ACServoMotionKeyboard* motionKeyboard = new ACServoMotionKeyboard;
-	installEventFilter(motionKeyboard); // for receiving QKeyEvent
-	addModule(motionKeyboard);
+	{
+		installEventFilter(motionKeyboard); // for receiving QKeyEvent
+
+		addModule(motionKeyboard);
+	}
 
 	ACServoMotionPCars2* motionPCars2 = new ACServoMotionPCars2;
-	addModule(motionPCars2);
+	{
+		addModule(motionPCars2);
+	}
 
 	ACServoMotionNoLimits2* motionNoLimits2 = new ACServoMotionNoLimits2;
-	addModule(motionNoLimits2);
+	{
+		addModule(motionNoLimits2);
+	}
+
+	ACServoMotionXPlane11* motionXPlane11 = new ACServoMotionXPlane11;
+	{
+		QJsonObject optionObject = motionOptions[motionXPlane11->getMotionName()];
+		motionXPlane11->initialize(optionObject["path"].toString().toStdString());
+
+		addModule(motionXPlane11);
+	}
 
 	// dynamic load
 	
