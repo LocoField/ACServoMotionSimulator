@@ -2,8 +2,16 @@
 
 #include "ACServoMotionBase.h"
 
-#include <string>
-#include <vector>
+#pragma pack(push, 1)
+struct Data
+{
+	char header[4]; // DATA
+	char padding[1];
+	unsigned int r1;
+	// pitch, roll, hding(true), hding(mag)
+	float values[4];
+};
+#pragma pack(pop)
 
 class ACServoMotionXPlane11 : public ACServoMotionBase
 {
@@ -19,19 +27,7 @@ public:
 
 	virtual bool process(void* arg);
 
-	bool initialize(const std::string& dataFilePath);
-
 protected:
-	std::vector<std::string> ACServoMotionXPlane11::parsingData(const std::string& data);
-
-protected:
-	std::string dataFilePath_;
-	int numRecords_ = 0;
-
-	std::streampos lastDataPosition = std::_BADOFF;
-	float realTime_ = 0;
-
-	int pitchIndex_ = -1;
-	int rollIndex_ = -1;
+	unsigned long long sock;
 
 };

@@ -490,9 +490,6 @@ void Dialog::addMotionModules()
 
 	ACServoMotionXPlane11* motionXPlane11 = new ACServoMotionXPlane11;
 	{
-		QJsonObject optionObject = motionOptions[motionXPlane11->getMotionName()];
-		motionXPlane11->initialize(optionObject["path"].toString().toStdString());
-
 		addModule(motionXPlane11);
 	}
 
