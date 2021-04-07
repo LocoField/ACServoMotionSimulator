@@ -38,11 +38,13 @@
 #pragma comment(lib, "Qt5Widgetsd.lib")
 #pragma comment(lib, "Qt5Guid.lib")
 #pragma comment(lib, "Qt5SerialPortd.lib")
+#pragma comment(lib, "Qt5Gamepadd.lib")
 #else
 #pragma comment(lib, "Qt5Core.lib")
 #pragma comment(lib, "Qt5Widgets.lib")
 #pragma comment(lib, "Qt5Gui.lib")
 #pragma comment(lib, "Qt5SerialPort.lib")
+#pragma comment(lib, "Qt5Gamepad.lib")
 #endif
 
 using namespace std;

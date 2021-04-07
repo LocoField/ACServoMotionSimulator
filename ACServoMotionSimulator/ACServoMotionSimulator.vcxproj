@@ -64,7 +64,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
-      <AdditionalLibraryDirectories>C:\_packages\dependencies\qt5-5.9.3\lib;..\..\USBPcapHelper\bin</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\_packages\dependencies\qt5-5.9.3\lib;</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -83,7 +83,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\_packages\dependencies\qt5-5.9.3\lib;..\..\USBPcapHelper\bin</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\_packages\dependencies\qt5-5.9.3\lib;</AdditionalLibraryDirectories>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
     </Link>
   </ItemDefinitionGroup>
@@ -95,6 +95,10 @@
     <ClCompile Include="ACServoMotorSerial.cpp" />
     <ClCompile Include="Dialog.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Motion\ACServoMotionJoystick.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="Motion\ACServoMotionKeyboard.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
@@ -122,6 +126,7 @@
     <ClInclude Include="ACServoMotorSerial.h" />
     <ClInclude Include="Dialog.h" />
     <ClInclude Include="Motion\ACServoMotionBase.h" />
+    <ClInclude Include="Motion\ACServoMotionJoystick.h" />
     <ClInclude Include="Motion\ACServoMotionKeyboard.h" />
     <ClInclude Include="Motion\ACServoMotionNoLimits2.h" />
     <ClInclude Include="Motion\ACServoMotionPCars2.h" />
