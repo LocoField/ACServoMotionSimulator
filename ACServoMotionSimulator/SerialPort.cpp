@@ -7,6 +7,9 @@ SerialPort::SerialPort()
 	{
 		if (error == QSerialPort::SerialPortError::ResourceError)
 		{
+			if (disconnectedCallback)
+				disconnectedCallback();
+
 			printf("ERROR: device disconnected.\n");
 		}
 	});
@@ -126,4 +129,9 @@ bool SerialPort::read(char& code, int timeout)
 	}
 
 	return false;
+}
+
+void SerialPort::setDisconnectedCallback(std::function<void()> callback)
+{
+	disconnectedCallback = callback;
 }

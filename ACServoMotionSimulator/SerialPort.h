@@ -19,6 +19,8 @@ public:
 	void disconnect();
 	bool isConnected();
 
+	void setDisconnectedCallback(std::function<void()> callback);
+
 	std::vector<unsigned char> writeAndRead(const std::vector<unsigned char>& data);
 
 	qint64 write(const QByteArray& data);
@@ -26,6 +28,9 @@ public:
 
 	bool write(char code);
 	bool read(char& code, int timeout = 2000);
+
+private:
+	std::function<void()> disconnectedCallback;
 
 };
 

@@ -154,6 +154,11 @@ void Dialog::initialize()
 				}
 			}
 
+			motor.setDisconnectedCallback([buttonMotorConnect]()
+			{
+				buttonMotorConnect->setChecked(false);
+			});
+
 			connect(buttonMotorConnect, &QPushButton::toggled, [this, buttonMotorConnect](bool checked)
 			{
 				if (checked)
