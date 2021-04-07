@@ -16,6 +16,9 @@
     <ClCompile Include="Motion\ACServoMotionNoLimits2.cpp">
       <Filter>Motion</Filter>
     </ClCompile>
+    <ClCompile Include="Motion\ACServoMotionXPlane11.cpp">
+      <Filter>Motion</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ACServoMotorHelper.h" />
@@ -36,6 +39,9 @@
       <Filter>Motion</Filter>
     </ClInclude>
     <ClInclude Include="Motion\ACServoMotionNoLimits2.h">
+      <Filter>Motion</Filter>
+    </ClInclude>
+    <ClInclude Include="Motion\ACServoMotionXPlane11.h">
       <Filter>Motion</Filter>
     </ClInclude>
   </ItemGroup>
