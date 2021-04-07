@@ -118,6 +118,7 @@ void Dialog::initialize()
 			buttonMotorConnect->setFixedHeight(100);
 
 			auto buttonMotorStart = new QPushButton("2. Start");
+			buttonMotorStart->setObjectName("buttonMotorStart");
 			buttonMotorStart->setFocusPolicy(Qt::FocusPolicy::NoFocus);
 			buttonMotorStart->setCheckable(true);
 			buttonMotorStart->setFixedWidth(150);
@@ -348,10 +349,46 @@ void Dialog::initialize()
 	QMenuBar* menu = new QMenuBar();
 	layout()->setMenuBar(menu);
 
-	QMenu* menuView = new QMenu("Option");
+	QMenu* menuAction = new QMenu("Action");
 	{
-		QAction* actionLoadOption = new QAction("Load");
-		connect(actionLoadOption, &QAction::triggered, [&]()
+		QAction* actionRepair = new QAction("Repair");
+		actionRepair->setCheckable(true);
+		connect(actionRepair, &QAction::triggered, [&, this](bool checked)
+		{
+			auto buttonMotorStart = findChild<QPushButton*>("buttonMotorStart");
+			if (buttonMotorStart->isChecked())
+				return;
+
+			if (checked)
+			{
+				for (int i = 0; i < numMotors; i++)
+				{
+					motor.setPosition(limit * sign, 0, i);
+				}
+			}
+			else
+			{
+				for (int i = 0; i < numMotors;)
+				{
+					int position = 0;
+					bool moving = true;
+
+					motor.position(i, position, moving);
+					motor.setPosition(-position, 0, i);
+
+					i++;
+				}
+			}
+		});
+
+		menuAction->addAction(actionRepair);
+		menu->addMenu(menuAction);
+	}
+
+	QMenu* menuOption = new QMenu("Option");
+	{
+		QAction* actionLoad = new QAction("Load");
+		connect(actionLoad, &QAction::triggered, [&]()
 		{
 			if (loadOption())
 			{
@@ -366,8 +403,8 @@ void Dialog::initialize()
 			}
 		});
 
-		menuView->addAction(actionLoadOption);
-		menu->addMenu(menuView);
+		menuOption->addAction(actionLoad);
+		menu->addMenu(menuOption);
 	}
 }
 
