@@ -12,7 +12,7 @@ protected:
 	virtual int checkCompleteData(const std::vector<unsigned char>& data);
 
 public:
-	bool connect(QString portName, int numMotors);
+	bool connect(QString portName, int baudRate, int numMotors);
 
 	bool setSpeed(int speed, int index, int device = -1);
 

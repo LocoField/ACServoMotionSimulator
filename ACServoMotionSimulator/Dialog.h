@@ -39,6 +39,7 @@ private:
 	std::vector<int> currentPositions;
 
 	int angle = 5000; // difference
+	int baudRate = 115200;
 	int center = 0;
 	double gain = 1;
 	int limit = 0;

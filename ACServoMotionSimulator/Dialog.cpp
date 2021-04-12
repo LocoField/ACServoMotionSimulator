@@ -163,7 +163,7 @@ void Dialog::initialize()
 			{
 				if (checked)
 				{
-					bool connect = motor.connect(portName, numMotors);
+					bool connect = motor.connect(portName, baudRate, numMotors);
 
 					if (connect == false)
 					{
@@ -456,6 +456,7 @@ bool Dialog::loadOption()
 				auto defaultOptionList = defaultOption.keys();
 
 				if (defaultOptionList.contains("angle") &&
+					defaultOptionList.contains("baudRate") &&
 					defaultOptionList.contains("center") &&
 					defaultOptionList.contains("gain") &&
 					defaultOptionList.contains("limit") &&
@@ -465,6 +466,7 @@ bool Dialog::loadOption()
 					defaultOptionList.contains("speed"))
 				{
 					angle = defaultOption["angle"].toInt();
+					baudRate = defaultOption["baudRate"].toInt();
 					center = defaultOption["center"].toInt();
 					gain = defaultOption["gain"].toDouble();
 					limit = defaultOption["limit"].toInt();
