@@ -358,14 +358,17 @@ void Dialog::initialize()
 	{
 		QAction* actionRepair = new QAction("Repair");
 		actionRepair->setCheckable(true);
-		connect(actionRepair, &QAction::triggered, [&, this](bool checked)
+		connect(actionRepair, &QAction::triggered, [this, actionRepair](bool checked)
 		{
-			auto buttonMotorStart = findChild<QPushButton*>("buttonMotorStart");
-			if (buttonMotorStart->isChecked())
-				return;
-
 			if (checked)
 			{
+				auto buttonMotorStart = findChild<QPushButton*>("buttonMotorStart");
+				if (buttonMotorStart->isChecked())
+				{
+					actionRepair->setChecked(false);
+					return;
+				}
+
 				for (int i = 0; i < numMotors; i++)
 				{
 					motor.setPosition(limit * sign, 0, i);
