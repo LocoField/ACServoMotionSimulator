@@ -176,6 +176,8 @@ void Dialog::initialize()
 					motor.setPosition(-angle * sign, 2, -1, false);
 
 					motor.setSpeed(speed, 0);
+					motor.setSpeed(speed, 1);
+					motor.setSpeed(speed, 2);
 
 					buttonMotorConnect->setText("Disconnect");
 				}
