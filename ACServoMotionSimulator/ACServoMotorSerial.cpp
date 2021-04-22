@@ -38,7 +38,7 @@ bool ACServoMotorSerial::connect(QString portName, int baudRate, int numMotors)
 	return true;
 }
 
-bool ACServoMotorSerial::setSpeed(int speed, int index, int device)
+bool ACServoMotorSerial::setSpeed(int speed, int device)
 {
 	int begin = device;
 	int end = device + 1;
@@ -51,13 +51,13 @@ bool ACServoMotorSerial::setSpeed(int speed, int index, int device)
 
 	for (int i = begin; i < end; i++)
 	{
-		writeAndRead(ACServoMotorHelper::setSpeed(speed, i + 1, index));
+		writeAndRead(ACServoMotorHelper::setSpeed(speed, i));
 	}
 
 	return true;
 }
 
-bool ACServoMotorSerial::setPosition(int position, int index, int device, bool autoTrigger)
+bool ACServoMotorSerial::setCycle(int cycle, int index, int device)
 {
 	int begin = device;
 	int end = device + 1;
@@ -70,14 +70,9 @@ bool ACServoMotorSerial::setPosition(int position, int index, int device, bool a
 
 	for (int i = begin; i < end; i++)
 	{
-		auto received = writeAndRead(ACServoMotorHelper::setPosition(position, i + 1, index));
+		auto received = writeAndRead(ACServoMotorHelper::setCycle(cycle, i, index));
 		if (received.empty())
 			continue;
-
-		if (autoTrigger)
-		{
-			trigger(index, i);
-		}
 	}
 
 	return true;
@@ -96,8 +91,8 @@ bool ACServoMotorSerial::trigger(int index, int device)
 
 	for (int i = begin; i < end; i++)
 	{
-		writeAndRead(ACServoMotorHelper::trigger(i + 1, index));
-		writeAndRead(ACServoMotorHelper::normal(i + 1));
+		writeAndRead(ACServoMotorHelper::trigger(i, index));
+		writeAndRead(ACServoMotorHelper::normal(i));
 	}
 
 	return true;
@@ -116,7 +111,7 @@ bool ACServoMotorSerial::stop(int index, int device)
 
 	for (int i = begin; i < end; i++)
 	{
-		writeAndRead(ACServoMotorHelper::stop(i + 1, index));
+		writeAndRead(ACServoMotorHelper::stop(i, index));
 	}
 
 	return true;
@@ -124,7 +119,7 @@ bool ACServoMotorSerial::stop(int index, int device)
 
 bool ACServoMotorSerial::position(int device, int& position, bool& moving)
 {
-	auto received = writeAndRead(ACServoMotorHelper::readEncoder(device + 1));
+	auto received = writeAndRead(ACServoMotorHelper::readEncoder(device));
 
 	if (ACServoMotorHelper::getEncoderValue(received, position, moving) == false)
 	{

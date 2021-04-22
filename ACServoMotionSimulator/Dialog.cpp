@@ -172,12 +172,10 @@ void Dialog::initialize()
 						return;
 					}
 
-					motor.setPosition(angle * sign, 1, -1, false);
-					motor.setPosition(-angle * sign, 2, -1, false);
+					motor.setCycle(angle * sign, 1, -1);
+					motor.setCycle(-angle * sign, 2, -1);
 
-					motor.setSpeed(speed, 0);
-					motor.setSpeed(speed, 1);
-					motor.setSpeed(speed, 2);
+					motor.setSpeed(speed, -1);
 
 					buttonMotorConnect->setText("Disconnect");
 				}
@@ -195,17 +193,17 @@ void Dialog::initialize()
 				{
 					for (int i = 0; i < numMotors; i++)
 					{
-						if (motor.setPosition(center * sign, 0, i) == false)
-							continue;
+						motor.setCycle(center * sign, 0, i);
 
 						currentPositions[i] = center;
 					}
+
+					motor.trigger(0);
 
 					buttonMotorStart->setText("Stop");
 				}
 				else
 				{
-					// why index required to stop motors?
 					motor.stop(0);
 					motor.stop(1);
 					motor.stop(2);
@@ -216,10 +214,12 @@ void Dialog::initialize()
 						bool moving = true;
 
 						motor.position(i, position, moving);
-						motor.setPosition(-position, 0, i);
+						motor.setCycle(-position, 0, i);
 
 						i++;
 					}
+
+					motor.trigger(0);
 
 					buttonMotorStart->setText("2. Start");
 				}
@@ -300,8 +300,7 @@ void Dialog::initialize()
 						{
 							speed = optionObject["speed"].toInt();
 
-							motor.setSpeed(speed, 1);
-							motor.setSpeed(speed, 2);
+							motor.setSpeed(speed);
 						}
 					}
 
@@ -320,8 +319,7 @@ void Dialog::initialize()
 					gain = optionObject["gain"].toDouble();
 					speed = optionObject["speed"].toInt();
 
-					motor.setSpeed(speed, 1);
-					motor.setSpeed(speed, 2);
+					motor.setSpeed(speed);
 
 					listMotionSource->setEnabled(true);
 				}
@@ -373,8 +371,10 @@ void Dialog::initialize()
 
 				for (int i = 0; i < numMotors; i++)
 				{
-					motor.setPosition(limit * sign, 0, i);
+					motor.setCycle(limit * sign, 0, i);
 				}
+
+				motor.trigger(0);
 			}
 			else
 			{
@@ -384,10 +384,12 @@ void Dialog::initialize()
 					bool moving = true;
 
 					motor.position(i, position, moving);
-					motor.setPosition(-position, 0, i);
+					motor.setCycle(-position, 0, i);
 
 					i++;
 				}
+
+				motor.trigger(0);
 			}
 		});
 
