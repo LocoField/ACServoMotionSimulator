@@ -2,21 +2,17 @@
     "default":
     {
         "angle": 5000,
+        "baudRate": 115200,
         "center": 100000,
         "gain": 1,
         "limit": 220000,
-        "numMotors": 2,
+        "numMotors": 4,
         "port": "COM13",
         "sign": 1,
         "speed": 200
     },
     "Keyboard":
     {
-        "angle": 10000,
-        "gain": 10,
-        "speed": 300
-    },
-    "X-Plane 11":
-    {
+        "gain": 10
     }
 }
