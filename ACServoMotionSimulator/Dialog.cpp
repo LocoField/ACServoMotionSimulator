@@ -229,7 +229,7 @@ void Dialog::initialize()
 			{
 				for (int i = 0; i < numMotors; i++)
 				{
-					auto command = ACServoMotorHelper::emergency(checked, i + 1);
+					auto command = ACServoMotorHelper::emergency(checked, i);
 					motor.write({ (char*)command.data(), (int)command.size() });
 
 					Sleep(10);
@@ -393,7 +393,23 @@ void Dialog::initialize()
 			}
 		});
 
+		QAction* actionPowerOff = new QAction("Power Off");
+		actionPowerOff->setCheckable(true);
+		connect(actionPowerOff, &QAction::triggered, [this](bool checked)
+		{
+			for (int i = 0; i < numMotors; i++)
+			{
+				auto command = ACServoMotorHelper::powerOn(!checked, i);
+				motor.write({ (char*)command.data(), (int)command.size() });
+
+				Sleep(10);
+			}
+
+			motor.read();
+		});
+
 		menuAction->addAction(actionRepair);
+		menuAction->addAction(actionPowerOff);
 		menu->addMenu(menuAction);
 	}
 

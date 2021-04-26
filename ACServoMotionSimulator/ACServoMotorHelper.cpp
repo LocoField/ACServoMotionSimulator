@@ -1,22 +1,50 @@
 #include "ACServoMotorHelper.h"
 
 #include <sstream>
+#include <iomanip>
+#include <algorithm>
 #include <bitset>
+
+int fromASCIIHex(const unsigned char* c, int numBytes = 1)
+{
+	auto HexToDec = [](unsigned char value) -> int
+	{
+		value -= 48;
+		if (value < 10) return value;
+		else return value - 7;
+	};
+
+	int sum = 0;
+	int offset = 0;
+
+	for (int i = 0; i < numBytes; i++)
+	{
+		if (i != 0)
+		{
+			sum = (sum << 8);
+		}
+
+		sum += (HexToDec(c[offset])) * 16 + (HexToDec(c[offset + 1]));
+		offset += 2;
+	}
+
+	return sum;
+}
 
 void ACServoMotorHelper::finalizeCommand(Command& data)
 {
-	unsigned char sum = 0;
+	int sum = 0;
 
 	for (size_t i = 1; i < data.size(); i += 2)
 	{
-		sum += ((data[i] - 48) * 10 + (data[i + 1] - 48));
+		sum += fromASCIIHex(&data[i]);
 	}
 
-	auto value = convertToHexString(-sum);
+	auto lrc = convertToHexString(-sum);
 
 	data.reserve(data.size() + 4);
-	data.push_back(value[0]);
-	data.push_back(value[1]);
+	data.push_back(lrc[2]);
+	data.push_back(lrc[3]);
 	data.push_back(0x0D);
 	data.push_back(0x0A);
 }
@@ -37,39 +65,42 @@ unsigned char ACServoMotorHelper::convertToAddressByte(int address)
 std::string ACServoMotorHelper::convertToHexString(int value)
 {
 	std::stringstream ss;
-	ss << std::hex << value;
+	ss << std::setfill('0') << std::setw(4) << std::hex << value;
 
 	std::string str = ss.str();
-	int padding = 4 - str.length(); // 0000
+	std::transform(str.begin(), str.end(), str.begin(), ::toupper);
 
-	if (padding < 0)
-		return str.erase(0, 6);
-	else if (padding > 0)
-		return str.insert(0, padding, '0');
-	else
-		return str;
+	if (str.length() > 4)
+	{
+		str = str.erase(0, 4);
+	}
+
+	return str;
 }
 
 int ACServoMotorHelper::getDataLength(const Command& data)
 {
-	const unsigned char minimumLength = 4; // mimimum length: address + command + [length] + CRC + CRC
+	// ASCII: start(1) + address(2) + command(2) + data(?) + LRC(2) + CRLF(2) = 9
+	// RTU: address(1) + command(1) + data(?) + CRC(2) = 4
+
+	const unsigned char minimumLength = 9;
 	if (data.size() < minimumLength)
 		return -1;
 
-	unsigned char command = data[1];
+	unsigned char cmd = fromASCIIHex(&data[3]);
 	unsigned char dataSize = 0;
 
-	switch (command)
+	switch (cmd)
 	{
 		case 0x03:
 		{
-			dataSize = data[2] + 1;
+			dataSize = 2 + fromASCIIHex(&data[5]) * 2;
 			break;
 		}
 		case 0x06:
+		case 0x08:
 		case 0x10:
 		{
-			// write
 			dataSize = 4;
 			break;
 		}
@@ -82,33 +113,13 @@ int ACServoMotorHelper::getDataLength(const Command& data)
 	return minimumLength + dataSize;
 }
 
-bool ACServoMotorHelper::getCycleValue(const Command& data, int& cycle)
-{
-	if (data.size() < 9)
-		return false;
-
-	if (data[1] != 0x03 || data[2] != 0x04) // check command and size
-		return false;
-
-	Command command(data.cbegin(), data.cend() - 4);
-	finalizeCommand(command);
-
-	if (command != data)
-		return false;
-
-	int cycle_high = (data[3] << 8) | data[4];
-	int cycle_low = (data[5] << 8) | data[6];
-
-	cycle = cycle_high * 10000 + cycle_low;
-	return true;
-}
-
 bool ACServoMotorHelper::getParamValue(const Command& data, int& value)
 {
-	if (data.size() < 7)
+	if (data.size() != getDataLength(data))
 		return false;
 
-	if (data[1] != 0x03 || data[2] != 0x02) // check command and size
+	unsigned char cmd = fromASCIIHex(&data[3]);
+	if (cmd != 0x03)
 		return false;
 
 	Command command(data.cbegin(), data.cend() - 4);
@@ -117,16 +128,17 @@ bool ACServoMotorHelper::getParamValue(const Command& data, int& value)
 	if (command != data)
 		return false;
 
-	value = (data[3] << 8) | data[4];
+	value = fromASCIIHex(&data[7], 2);
 	return true;
 }
 
 bool ACServoMotorHelper::getEncoderValue(const Command& data, int& position, bool& moving)
 {
-	if (data.size() < 11)
+	if (data.size() != getDataLength(data))
 		return false;
 
-	if (data[1] != 0x03 || data[2] != 0x06) // check command and size
+	unsigned char cmd = fromASCIIHex(&data[3]);
+	if (cmd != 0x03)
 		return false;
 
 	Command command(data.cbegin(), data.cend() - 4);
@@ -135,11 +147,11 @@ bool ACServoMotorHelper::getEncoderValue(const Command& data, int& position, boo
 	if (command != data)
 		return false;
 
-	short output = (data[3] << 8) | data[4];
+	short output = fromASCIIHex(&data[7], 2);
 	moving = (output & 8) != 0;
 
-	short encoder_high = (data[5] << 8) | data[6];
-	short encoder_low = (data[7] << 8) | data[8];
+	short encoder_high = fromASCIIHex(&data[11], 2);
+	short encoder_low = fromASCIIHex(&data[15], 2);
 
 	position = encoder_high + encoder_low * 10000;
 	return true;
@@ -342,18 +354,32 @@ Command ACServoMotorHelper::normal(int address)
 
 Command ACServoMotorHelper::emergency(bool on, int address)
 {
-	Command data = {
-		(unsigned char)address, 0x06, 0x00, 0x46, 0x7F };
-
 	unsigned char value = 0;
 	if (on) value = 'F';
 	else value = 'B';
 
-	data = {
+	Command data = {
 		':', '0', convertToAddressByte(address),
 		'0', '6',
 		'0', '0', '4', '6',
 		'7', 'F', value, '2',
+	};
+
+	finalizeCommand(data);
+	return data;
+}
+
+Command ACServoMotorHelper::powerOn(bool on, int address)
+{
+	unsigned char value = 0;
+	if (on) value = '1';
+	else value = '0';
+
+	Command data = {
+		':', '0', convertToAddressByte(address),
+		'0', '6',
+		'0', '0', '0', '3',
+		'0', '0', '0', value,
 	};
 
 	finalizeCommand(data);

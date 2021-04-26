@@ -33,5 +33,6 @@ public:
 	static Command normal(int address);
 
 	static Command emergency(bool on, int address);
+	static Command powerOn(bool on, int address);
 
 };
