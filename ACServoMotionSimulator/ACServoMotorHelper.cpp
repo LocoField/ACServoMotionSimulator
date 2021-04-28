@@ -264,11 +264,11 @@ Command ACServoMotorHelper::emergency(bool on, int address)
 	data.reserve(8);
 
 	data.insert(data.end(), {
-		(unsigned char)address, 0x06, 0x00, 0x46, 0x7F,
+		(unsigned char)address, 0x06, 0x00, 70, 0x7F,
 	});
 
-	if (on) data.push_back(0xF2);
-	else data.push_back(0xB2);
+	if (on) data.push_back(0xFF);
+	else data.push_back(0xBF);
 
 	calculateCRC(data);
 	return data;
