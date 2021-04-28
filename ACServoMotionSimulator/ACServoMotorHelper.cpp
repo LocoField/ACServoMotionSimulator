@@ -161,11 +161,30 @@ Command ACServoMotorHelper::power(bool on, int address)
 	data.reserve(8);
 
 	data.insert(data.end(), {
-		(unsigned char)address, 0x06, 0x00, 0x03, 0x00,
+		(unsigned char)address, 0x06, 0x00, 70, 0x7F,
 	});
 
-	if (on) data.push_back(0x01);
-	else data.push_back(0x00);
+	if (on) data.push_back(0xBE);
+	else data.push_back(0xBF);
+
+	calculateCRC(data);
+	return data;
+}
+
+Command ACServoMotorHelper::home(int address)
+{
+	std::bitset<16> pn71 = 0x7fff;
+	pn71.set(6, false);
+
+	auto value = pn71.to_ulong();
+
+	Command data;
+	data.reserve(8);
+
+	data.insert(data.end(), {
+		(unsigned char)address, 0x06, 0x00, 71,
+		(unsigned char)((value >> 8) & 0xFF), (unsigned char)(value & 0xFF),
+	});
 
 	calculateCRC(data);
 	return data;
