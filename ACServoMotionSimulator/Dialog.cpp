@@ -201,10 +201,7 @@ void Dialog::initialize()
 				}
 				else
 				{
-					motor.stop(0);
-					motor.stop(1);
-					motor.stop(2);
-					motor.stop(3);
+					motor.stop();
 
 					for (int i = 0; i < numMotors;)
 					{

@@ -95,7 +95,7 @@ bool ACServoMotorSerial::power(bool on, int device)
 	return true;
 }
 
-bool ACServoMotorSerial::stop(int index, int device)
+bool ACServoMotorSerial::stop(int device)
 {
 	int begin = device;
 	int end = device + 1;
@@ -108,7 +108,7 @@ bool ACServoMotorSerial::stop(int index, int device)
 
 	for (int i = begin; i < end; i++)
 	{
-		writeAndRead(ACServoMotorHelper::stop(i + 1, index));
+		writeAndRead(ACServoMotorHelper::stop(i + 1));
 	}
 
 	return true;

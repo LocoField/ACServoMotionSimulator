@@ -25,7 +25,7 @@ public:
 	static Command setSpeed(int speed, int address);
 
 	static Command power(bool on, int address);
-	static Command stop(int address, int index);
+	static Command stop(int address);
 	static Command trigger(int address, int index);
 	static Command normal(int address);
 

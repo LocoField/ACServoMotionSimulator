@@ -171,42 +171,10 @@ Command ACServoMotorHelper::power(bool on, int address)
 	return data;
 }
 
-Command ACServoMotorHelper::stop(int address, int index)
+Command ACServoMotorHelper::stop(int address)
 {
 	std::bitset<16> pn71 = 0x7fff;
 	pn71.set(11, false);
-
-	switch (index)
-	{
-		case 0:
-		{
-			pn71.set(8, true);
-			pn71.set(9, true);
-			break;
-		}
-		case 1:
-		{
-			pn71.set(8, false);
-			pn71.set(9, true);
-			break;
-		}
-		case 2:
-		{
-			pn71.set(8, true);
-			pn71.set(9, false);
-			break;
-		}
-		case 3:
-		{
-			pn71.set(8, false);
-			pn71.set(9, false);
-			break;
-		}
-		default:
-		{
-			return Command();
-		}
-	}
 
 	auto value = pn71.to_ulong();
 

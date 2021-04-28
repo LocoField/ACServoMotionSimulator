@@ -18,7 +18,7 @@ public:
 	bool setSpeed(int speed, int device = -1);
 
 	bool power(bool on, int device = -1);
-	bool stop(int index, int device = -1);
+	bool stop(int device = -1);
 	bool trigger(int index, int device = -1);
 
 	bool position(int index, int& position, bool& moving);
