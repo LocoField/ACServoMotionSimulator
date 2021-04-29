@@ -195,6 +195,10 @@ void Dialog::initialize()
 					for (int i = 0; i < numMotors; i++)
 						currentPositions[i] = center;
 
+					updateUI(currentPositions);
+
+					motor.power(true);
+					motor.home();
 					motor.trigger(0);
 
 					buttonMotorStart->setText("Stop");
@@ -205,11 +209,11 @@ void Dialog::initialize()
 
 					for (int i = 0; i < numMotors;)
 					{
-						int position = 0;
+						int pos = 0;
 						bool moving = true;
 
-						motor.position(i, position, moving);
-						motor.setCycle(-position, 3, i);
+						motor.position(i, pos, moving);
+						motor.setCycle(-pos, 3, i);
 
 						i++;
 					}
@@ -223,10 +227,10 @@ void Dialog::initialize()
 
 						for (int i = 0; i < numMotors; i++)
 						{
-							int position = 0;
+							int pos = 0;
 							bool moving = true;
 
-							motor.position(i, position, moving);
+							motor.position(i, pos, moving);
 
 							if (moving)
 							{
@@ -241,6 +245,10 @@ void Dialog::initialize()
 
 					for (int i = 0; i < numMotors; i++)
 						currentPositions[i] = 0;
+
+					updateUI(currentPositions);
+
+					motor.power(false);
 
 					buttonMotorStart->setText("2. Start");
 				}
@@ -399,11 +407,11 @@ void Dialog::initialize()
 			{
 				for (int i = 0; i < numMotors;)
 				{
-					int position = 0;
+					int pos = 0;
 					bool moving = true;
 
-					motor.position(i, position, moving);
-					motor.setCycle(-position, 0, i);
+					motor.position(i, pos, moving);
+					motor.setCycle(-pos, 0, i);
 
 					i++;
 				}

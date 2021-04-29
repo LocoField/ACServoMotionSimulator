@@ -5,10 +5,10 @@
 ## Motor Driver Settings
 
 1. Motor Working   
-    - pn003 = 1 : automatically enable drive after power on   
-    - pn033 = 3 : origin regression at power on   
-    - pn034 = 5 : origin regression reference   
-    - pn035 = 2 : origin regression origin   
+    - pn003 = 0 : automatically enable drive after power on   
+    - pn033 = 1 : origin regression trigger by GOH   
+    - pn034 = 4 : origin regression reference point mode (4 or 5)   
+    - pn035 = 2 : origin regression origin mode   
     - pn076 = 1 : emergency recovery   
     - Pn117 = 1 : internal position instructions   
     
@@ -20,8 +20,8 @@
     
 3. Communication   
     - pn065 = n : communication station number   
-    - pn068 = 64 : control emergency only by communication   
+    - pn068 = 67 : control emergency, alarm reset, and servo on by communication   
     - pn069 = 32767 : control all functions by communication   
-    - pn070 = 32690   
+    - pn070 = 32703   
     - pn071 = 32767   
     
