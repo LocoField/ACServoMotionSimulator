@@ -2,7 +2,7 @@
 
 #include "SerialPort.h"
 
-class ACServoMotorSerial : public SerialPort
+class ACServoMotorSerial : protected SerialPort
 {
 public:
 	ACServoMotorSerial() = default;
@@ -13,6 +13,9 @@ protected:
 
 public:
 	bool connect(QString portName, int baudRate, int numMotors);
+	void disconnect();
+
+	void setDisconnectedCallback(std::function<void()> callback);
 
 	bool paramValue(int device, int param, short& value);
 	bool position(int device, int& pos);

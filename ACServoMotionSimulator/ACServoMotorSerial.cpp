@@ -48,6 +48,17 @@ bool ACServoMotorSerial::connect(QString portName, int baudRate, int numMotors)
 	return true;
 }
 
+void ACServoMotorSerial::disconnect()
+{
+	__super::disconnect();
+
+	numMotors_ = 0;
+}
+
+void ACServoMotorSerial::setDisconnectedCallback(std::function<void()> callback)
+{
+	__super::setDisconnectedCallback(callback);
+}
 
 bool ACServoMotorSerial::paramValue(int device, int param, short& value)
 {
