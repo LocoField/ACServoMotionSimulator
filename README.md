@@ -7,7 +7,7 @@
 1. Motor Working   
     - pn003 = 0 : automatically enable drive after power on   
     - pn033 = 1 : origin regression trigger by GOH   
-    - pn034 = 5 : origin regression reference point mode   
+    - pn034 = 4 : origin regression reference point mode (4 or 5)   
     - pn035 = 2 : origin regression origin mode   
     - pn076 = 1 : emergency recovery   
     - Pn117 = 1 : internal position instructions   
