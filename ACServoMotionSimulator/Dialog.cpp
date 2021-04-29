@@ -206,6 +206,7 @@ void Dialog::initialize()
 				else
 				{
 					motor.stop();
+					Sleep(100);
 
 					for (int i = 0; i < numMotors;)
 					{
@@ -400,21 +401,28 @@ void Dialog::initialize()
 
 				for (int i = 0; i < numMotors; i++)
 				{
-					motor.setCycle(limit * sign, 0, i);
+					motor.setCycle(limit * sign, 3, i);
 				}
+
+				motor.trigger(3);
 			}
 			else
 			{
+				motor.stop();
+				Sleep(100);
+
 				for (int i = 0; i < numMotors;)
 				{
 					int pos = 0;
 					bool moving = true;
 
 					motor.position(i, pos, moving);
-					motor.setCycle(-pos, 0, i);
+					motor.setCycle(-pos, 3, i);
 
 					i++;
 				}
+
+				motor.trigger(3);
 			}
 		});
 
