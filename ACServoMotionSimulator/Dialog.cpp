@@ -211,38 +211,15 @@ void Dialog::initialize()
 					for (int i = 0; i < numMotors;)
 					{
 						int pos = 0;
-						bool moving = true;
 
-						motor.position(i, pos, moving);
+						motor.position(i, pos);
 						motor.setCycle(-pos, 3, i);
 
 						i++;
 					}
 
 					motor.trigger(3);
-
-					while (1)
-					{
-						Sleep(100);
-						bool allMoved = true;
-
-						for (int i = 0; i < numMotors; i++)
-						{
-							int pos = 0;
-							bool moving = true;
-
-							motor.position(i, pos, moving);
-
-							if (moving)
-							{
-								allMoved = false;
-								break;
-							}
-						}
-
-						if (allMoved)
-							break;
-					}
+					motor.wait();
 
 					for (int i = 0; i < numMotors; i++)
 						currentPositions[i] = 0;
@@ -257,15 +234,7 @@ void Dialog::initialize()
 
 			connect(buttonMotorEmergency, &QPushButton::clicked, [this](bool checked)
 			{
-				for (int i = 0; i < numMotors; i++)
-				{
-					auto command = ACServoMotorHelper::emergency(checked, i + 1);
-					motor.write({ (char*)command.data(), (int)command.size() });
-
-					Sleep(10);
-				}
-
-				motor.read();
+				motor.emergency(checked);
 			});
 
 			auto layout = new QHBoxLayout;
@@ -414,9 +383,8 @@ void Dialog::initialize()
 				for (int i = 0; i < numMotors;)
 				{
 					int pos = 0;
-					bool moving = true;
 
-					motor.position(i, pos, moving);
+					motor.position(i, pos);
 					motor.setCycle(-pos, 3, i);
 
 					i++;

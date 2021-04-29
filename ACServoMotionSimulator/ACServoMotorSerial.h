@@ -13,6 +13,8 @@ protected:
 
 public:
 	bool connect(QString portName, int baudRate, int numMotors);
+	bool position(int device, int& pos);
+	void wait(int timeout = 2000);
 
 	bool setCycle(int cycle, int index, int device = -1);
 	bool setSpeed(int speed, int device = -1);
@@ -22,7 +24,7 @@ public:
 	bool stop(int device = -1);
 	bool trigger(int index, int device = -1);
 
-	bool position(int index, int& pos, bool& moving);
+	void emergency(bool on);
 
 protected:
 	int numMotors_ = 0;

@@ -23,9 +23,8 @@ bool ACServoMotorSerial::connect(QString portName, int baudRate, int numMotors)
 	for (int i = 0; i < numMotors; i++)
 	{
 		int pos = 0;
-		bool moving = true;
 
-		if (position(i, pos, moving) == false)
+		if (position(i, pos) == false)
 		{
 			printf("ERROR: motor command failed\n");
 
@@ -36,6 +35,48 @@ bool ACServoMotorSerial::connect(QString portName, int baudRate, int numMotors)
 	numMotors_ = numMotors;
 
 	return true;
+}
+
+
+bool ACServoMotorSerial::position(int device, int& pos)
+{
+	bool moving = true;
+
+	auto received = writeAndRead(ACServoMotorHelper::readEncoder(device + 1));
+
+	if (ACServoMotorHelper::getEncoderValue(received, pos, moving) == false)
+		return false;
+
+	if (moving)
+		return false;
+
+	return true;
+}
+
+void ACServoMotorSerial::wait(int timeout)
+{
+	timeout /= 100;
+
+	for (int i = 0; i < timeout; i++)
+	{
+		bool allMoved = true;
+
+		for (int i = 0; i < numMotors_; i++)
+		{
+			int pos = 0;
+
+			if (position(i, pos) == false)
+			{
+				allMoved = false;
+				break;
+			}
+		}
+
+		if (allMoved)
+			break;
+
+		Sleep(100);
+	}
 }
 
 bool ACServoMotorSerial::setCycle(int cycle, int index, int device)
@@ -156,22 +197,15 @@ bool ACServoMotorSerial::trigger(int index, int device)
 	return true;
 }
 
-bool ACServoMotorSerial::position(int device, int& pos, bool& moving)
+void ACServoMotorSerial::emergency(bool on)
 {
-	auto received = writeAndRead(ACServoMotorHelper::readEncoder(device + 1));
-
-	if (ACServoMotorHelper::getEncoderValue(received, pos, moving) == false)
+	for (int i = 0; i < numMotors_; i++)
 	{
-//#ifdef _DEBUG
-		printf("ERROR: getEncoderValue()\n");
+		auto command = ACServoMotorHelper::emergency(on, i + 1);
 
-		for (auto& c : received)
-			printf("%x ", c);
-		printf("\n\n");
-//#endif
-
-		return false;
+		write({ (char*)command.data(), (int)command.size() });
+		Sleep(10);
 	}
 
-	return true;
+	readAll();
 }
