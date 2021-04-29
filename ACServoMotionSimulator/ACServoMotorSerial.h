@@ -13,6 +13,8 @@ protected:
 
 public:
 	bool connect(QString portName, int baudRate, int numMotors);
+
+	bool paramValue(int device, int param, short& value);
 	bool position(int device, int& pos);
 	void wait(int timeout = 2000);
 

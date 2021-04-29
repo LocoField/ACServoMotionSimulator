@@ -15,21 +15,32 @@ bool ACServoMotorSerial::connect(QString portName, int baudRate, int numMotors)
 {
 	if (__super::connect(portName, baudRate, QSerialPort::OddParity, QSerialPort::OneStop) == false)
 	{
-		printf("ERROR: motor connect failed\n");
+		printf("ERROR: motor connect failed.\n");
 
 		return false;
 	}
 
+	bool succeed = true;
+
 	for (int i = 0; i < numMotors; i++)
 	{
-		int pos = 0;
+		short motionStationNumber = 0;
 
-		if (position(i, pos) == false)
+		bool paramCheck = paramValue(i, 65, motionStationNumber);
+
+		if (paramCheck == false || motionStationNumber != i)
 		{
-			printf("ERROR: motor command failed\n");
-
-			return false;
+			succeed = false;
+			break;
 		}
+	}
+
+	if (succeed == false)
+	{
+		printf("ERROR: motor station number failed.\n");
+
+		__super::disconnect();
+		return false;
 	}
 
 	numMotors_ = numMotors;
@@ -37,6 +48,16 @@ bool ACServoMotorSerial::connect(QString portName, int baudRate, int numMotors)
 	return true;
 }
 
+
+bool ACServoMotorSerial::paramValue(int device, int param, short& value)
+{
+	auto received = writeAndRead(ACServoMotorHelper::readParam(device + 1, param));
+
+	if (ACServoMotorHelper::getParamValue(received, value) == false)
+		return false;
+
+	return true;
+}
 
 bool ACServoMotorSerial::position(int device, int& pos)
 {

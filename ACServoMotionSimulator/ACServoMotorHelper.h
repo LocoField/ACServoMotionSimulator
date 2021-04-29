@@ -16,8 +16,10 @@ protected:
 public:
 	static int getDataLength(const Command& data);
 
+	static bool getParamValue(const Command& data, short& value);
 	static bool getEncoderValue(const Command& data, int& position, bool& moving); // high + low * 10000 bits
 
+	static Command readParam(int address, unsigned char param);
 	static Command readCycles(int address, int index);
 	static Command readEncoder(int address);
 

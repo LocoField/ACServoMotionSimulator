@@ -64,6 +64,24 @@ int ACServoMotorHelper::getDataLength(const Command& data)
 	return minimumLength + dataSize;
 }
 
+bool ACServoMotorHelper::getParamValue(const Command& data, short& value)
+{
+	if (data.size() != getDataLength(data))
+		return false;
+
+	if (data[1] != 0x03 || data[2] != 0x02) // check command and size
+		return false;
+
+	Command command(data.cbegin(), data.cend() - 2);
+	calculateCRC(command);
+
+	if (command != data)
+		return false;
+
+	value = (data[3] << 8) | data[4];
+	return true;
+}
+
 bool ACServoMotorHelper::getEncoderValue(const Command& data, int& position, bool& moving)
 {
 	if (data.size() != getDataLength(data))
@@ -86,6 +104,21 @@ bool ACServoMotorHelper::getEncoderValue(const Command& data, int& position, boo
 
 	position = encoder_acc1 + encoder_acc2 * 10000;
 	return true;
+}
+
+Command ACServoMotorHelper::readParam(int address, unsigned char param)
+{
+	if (235 < param) return Command();
+
+	Command data;
+	data.reserve(8);
+
+	data.insert(data.end(), {
+		(unsigned char)address, 0x03, 0x00, param, 0x00, 0x01,
+	});
+
+	calculateCRC(data);
+	return data;
 }
 
 Command ACServoMotorHelper::readCycles(int address, int index)
