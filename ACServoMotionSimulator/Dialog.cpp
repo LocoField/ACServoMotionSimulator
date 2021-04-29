@@ -195,6 +195,8 @@ void Dialog::initialize()
 					for (int i = 0; i < numMotors; i++)
 						currentPositions[i] = center;
 
+					updateUI(currentPositions);
+
 					motor.power(true);
 					motor.home();
 					motor.trigger(0);
@@ -243,6 +245,8 @@ void Dialog::initialize()
 
 					for (int i = 0; i < numMotors; i++)
 						currentPositions[i] = 0;
+
+					updateUI(currentPositions);
 
 					motor.power(false);
 
