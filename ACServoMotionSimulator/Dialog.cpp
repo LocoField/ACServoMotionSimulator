@@ -203,7 +203,7 @@ void Dialog::initialize()
 					motor.power(true);
 					motor.home();
 
-					for (int i = 0; i < numMotors;)
+					for (int i = 0; i < numMotors; i++)
 						motor.trigger(i, 0);
 
 					buttonMotorStart->setText("Stop");
@@ -304,7 +304,7 @@ void Dialog::initialize()
 						{
 							speed = optionObject["speed"].toInt();
 
-							for (int i = 0; i < numMotors;)
+							for (int i = 0; i < numMotors; i++)
 							{
 								motor.setSpeed(i, speed);
 							}
@@ -326,7 +326,7 @@ void Dialog::initialize()
 					gain = optionObject["gain"].toDouble();
 					speed = optionObject["speed"].toInt();
 
-					for (int i = 0; i < numMotors;)
+					for (int i = 0; i < numMotors; i++)
 					{
 						motor.setSpeed(i, speed);
 					}
