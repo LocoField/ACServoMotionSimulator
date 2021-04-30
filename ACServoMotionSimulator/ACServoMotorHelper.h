@@ -20,18 +20,18 @@ public:
 	static bool getEncoderValue(const Command& data, int& position, bool& moving); // high + low * 10000 bits
 
 	static Command readParam(int address, unsigned char param);
-	static Command readCycles(int address, int index);
+	static Command readCycles(int address, unsigned char index);
 	static Command readEncoder(int address);
 
-	static Command setCycle(int cycle, int address, int index);
-	static Command setSpeed(int speed, int address);
+	static Command setCycle(int address, int cycle, unsigned char index);
+	static Command setSpeed(int address, unsigned short speed);
 
-	static Command power(bool on, int address);
 	static Command home(int address);
 	static Command stop(int address);
-	static Command trigger(int address, int index);
+	static Command trigger(int address, unsigned char index);
 	static Command normal(int address);
 
-	static Command emergency(bool on, int address);
+	static Command emergency(int address, bool on);
+	static Command power(int address, bool on);
 
 };

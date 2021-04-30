@@ -13,56 +13,70 @@ int ACServoMotorSerial::checkCompleteData(const std::vector<unsigned char>& data
 
 bool ACServoMotorSerial::connect(QString portName, int baudRate, int numMotors)
 {
-	if (__super::connect(portName, baudRate, QSerialPort::OddParity, QSerialPort::OneStop) == false)
-	{
-		printf("ERROR: motor connect failed.\n");
-
-		return false;
-	}
-
 	bool succeed = true;
+
+	motors_.reserve(numMotors);
 
 	for (int i = 0; i < numMotors; i++)
 	{
-		short motionStationNumber = 0;
+		SerialPort* motor = new SerialPort;
 
+		if (motor->connect(portName, baudRate, QSerialPort::OddParity, QSerialPort::OneStop) == false)
+		{
+			printf("ERROR: motor connect failed.\n");
+
+			delete motor;
+			succeed = false;
+			break;
+		}
+
+		short motionStationNumber = 0;
 		bool paramCheck = paramValue(i, 65, motionStationNumber);
 
 		if (paramCheck == false || motionStationNumber != i)
 		{
+			printf("ERROR: motor station number failed.\n");
+
+			delete motor;
 			succeed = false;
 			break;
 		}
+
+		motors_.emplace_back(motor);
 	}
 
 	if (succeed == false)
 	{
-		printf("ERROR: motor station number failed.\n");
-
-		__super::disconnect();
+		disconnect();
 		return false;
 	}
-
-	numMotors_ = numMotors;
 
 	return true;
 }
 
 void ACServoMotorSerial::disconnect()
 {
-	__super::disconnect();
+	for (int i = 0; i < motors_.size(); i++)
+	{
+		delete motors_[i];
+	}
 
-	numMotors_ = 0;
+	motors_.clear();
 }
 
 void ACServoMotorSerial::setDisconnectedCallback(std::function<void()> callback)
 {
-	__super::setDisconnectedCallback(callback);
+	for (int i = 0; i < motors_.size(); i++)
+	{
+		motors_[i]->setDisconnectedCallback(callback);
+	}
 }
 
-bool ACServoMotorSerial::paramValue(int device, int param, short& value)
+bool ACServoMotorSerial::paramValue(int device, unsigned char param, short& value)
 {
-	auto received = writeAndRead(ACServoMotorHelper::readParam(device + 1, param));
+	if (device < 0 || motors_.size() <= device) return false;
+
+	auto received = motors_[device]->writeAndRead(ACServoMotorHelper::readParam(device, param));
 
 	if (ACServoMotorHelper::getParamValue(received, value) == false)
 		return false;
@@ -72,15 +86,93 @@ bool ACServoMotorSerial::paramValue(int device, int param, short& value)
 
 bool ACServoMotorSerial::position(int device, int& pos)
 {
+	if (device < 0 || motors_.size() <= device) return false;
+
 	bool moving = true;
 
-	auto received = writeAndRead(ACServoMotorHelper::readEncoder(device + 1));
+	auto received = motors_[device]->writeAndRead(ACServoMotorHelper::readEncoder(device));
 
 	if (ACServoMotorHelper::getEncoderValue(received, pos, moving) == false)
 		return false;
 
 	if (moving)
 		return false;
+
+	return true;
+}
+
+bool ACServoMotorSerial::setCycle(int device, int cycle, unsigned char index)
+{
+	if (device < 0 || motors_.size() <= device) return false;
+
+	motors_[device]->writeAndRead(ACServoMotorHelper::setCycle(device, cycle, index));
+
+	return true;
+}
+
+bool ACServoMotorSerial::setSpeed(int device, unsigned short speed)
+{
+	if (device < 0 || motors_.size() <= device) return false;
+
+	motors_[device]->writeAndRead(ACServoMotorHelper::setSpeed(device, speed));
+
+	return true;
+}
+
+void ACServoMotorSerial::emergency(bool on)
+{
+	for (int i = 0; i < motors_.size(); i++)
+	{
+		auto command = ACServoMotorHelper::emergency(i, on);
+
+		motors_[i]->write({ (char*)command.data(), (int)command.size() });
+	}
+
+	for (int i = 0; i < motors_.size(); i++)
+	{
+		motors_[i]->read();
+	}
+}
+
+bool ACServoMotorSerial::power(bool on)
+{
+	for (int i = 0; i < motors_.size(); i++)
+	{
+		motors_[i]->writeAndRead(ACServoMotorHelper::power(i, on));
+	}
+
+	return true;
+}
+
+bool ACServoMotorSerial::home()
+{
+	for (int i = 0; i < motors_.size(); i++)
+	{
+		motors_[i]->writeAndRead(ACServoMotorHelper::home(i));
+		motors_[i]->writeAndRead(ACServoMotorHelper::normal(i));
+	}
+
+	Sleep(1000);
+
+	return true;
+}
+
+bool ACServoMotorSerial::stop()
+{
+	for (int i = 0; i < motors_.size(); i++)
+	{
+		motors_[i]->writeAndRead(ACServoMotorHelper::stop(i));
+	}
+
+	return true;
+}
+
+bool ACServoMotorSerial::trigger(int device, unsigned char index)
+{
+	if (motors_.size() <= device) return false;
+
+	motors_[device]->writeAndRead(ACServoMotorHelper::trigger(device, index));
+	motors_[device]->writeAndRead(ACServoMotorHelper::normal(device));
 
 	return true;
 }
@@ -93,7 +185,7 @@ void ACServoMotorSerial::wait(int timeout)
 	{
 		bool allMoved = true;
 
-		for (int i = 0; i < numMotors_; i++)
+		for (int i = 0; i < motors_.size(); i++)
 		{
 			int pos = 0;
 
@@ -109,135 +201,4 @@ void ACServoMotorSerial::wait(int timeout)
 
 		Sleep(100);
 	}
-}
-
-bool ACServoMotorSerial::setCycle(int cycle, int index, int device)
-{
-	int begin = device;
-	int end = device + 1;
-
-	if (device < 0)
-	{
-		begin = 0;
-		end = numMotors_;
-	}
-
-	for (int i = begin; i < end; i++)
-	{
-		writeAndRead(ACServoMotorHelper::setCycle(cycle, i + 1, index));
-	}
-
-	return true;
-}
-
-bool ACServoMotorSerial::setSpeed(int speed, int device)
-{
-	int begin = device;
-	int end = device + 1;
-
-	if (device < 0)
-	{
-		begin = 0;
-		end = numMotors_;
-	}
-
-	for (int i = begin; i < end; i++)
-	{
-		writeAndRead(ACServoMotorHelper::setSpeed(speed, i + 1));
-	}
-
-	return true;
-}
-
-bool ACServoMotorSerial::power(bool on, int device)
-{
-	int begin = device;
-	int end = device + 1;
-
-	if (device < 0)
-	{
-		begin = 0;
-		end = numMotors_;
-	}
-
-	for (int i = begin; i < end; i++)
-	{
-		writeAndRead(ACServoMotorHelper::power(on, i + 1));
-	}
-
-	return true;
-}
-
-bool ACServoMotorSerial::home(int device)
-{
-	int begin = device;
-	int end = device + 1;
-
-	if (device < 0)
-	{
-		begin = 0;
-		end = numMotors_;
-	}
-
-	for (int i = begin; i < end; i++)
-	{
-		writeAndRead(ACServoMotorHelper::home(i + 1));
-		writeAndRead(ACServoMotorHelper::normal(i + 1));
-	}
-
-	Sleep(1000);
-
-	return true;
-}
-
-bool ACServoMotorSerial::stop(int device)
-{
-	int begin = device;
-	int end = device + 1;
-
-	if (device < 0)
-	{
-		begin = 0;
-		end = numMotors_;
-	}
-
-	for (int i = begin; i < end; i++)
-	{
-		writeAndRead(ACServoMotorHelper::stop(i + 1));
-	}
-
-	return true;
-}
-
-bool ACServoMotorSerial::trigger(int index, int device)
-{
-	int begin = device;
-	int end = device + 1;
-
-	if (device < 0)
-	{
-		begin = 0;
-		end = numMotors_;
-	}
-
-	for (int i = begin; i < end; i++)
-	{
-		writeAndRead(ACServoMotorHelper::trigger(i + 1, index));
-		writeAndRead(ACServoMotorHelper::normal(i + 1));
-	}
-
-	return true;
-}
-
-void ACServoMotorSerial::emergency(bool on)
-{
-	for (int i = 0; i < numMotors_; i++)
-	{
-		auto command = ACServoMotorHelper::emergency(on, i + 1);
-
-		write({ (char*)command.data(), (int)command.size() });
-		Sleep(10);
-	}
-
-	readAll();
 }
