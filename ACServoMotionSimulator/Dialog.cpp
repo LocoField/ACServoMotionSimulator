@@ -163,7 +163,7 @@ void Dialog::initialize()
 			{
 				if (checked)
 				{
-					bool connect = motor.connect(portName, baudRate, numMotors);
+					bool connect = motor.connect(portNames, baudRate, numMotors);
 
 					if (connect == false)
 					{
@@ -488,7 +488,7 @@ bool Dialog::loadOption()
 					gain = defaultOption["gain"].toDouble();
 					limit = defaultOption["limit"].toInt();
 					numMotors = defaultOption["numMotors"].toInt();
-					portName = defaultOption["port"].toString();
+					portNames = defaultOption["port"].toString();
 					sign = defaultOption["sign"].toInt();
 					speed = defaultOption["speed"].toInt();
 				}

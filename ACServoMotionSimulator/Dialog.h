@@ -44,7 +44,7 @@ private:
 	double gain = 1;
 	int limit = 0;
 	int numMotors = 0;
-	QString portName;
+	QString portNames;
 	int sign = 1; // 1 or -1
 	int speed = 1000; // rpm
 

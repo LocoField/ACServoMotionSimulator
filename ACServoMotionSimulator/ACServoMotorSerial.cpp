@@ -11,8 +11,15 @@ int ACServoMotorSerial::checkCompleteData(const std::vector<unsigned char>& data
 	return expectedLength;
 }
 
-bool ACServoMotorSerial::connect(QString portName, int baudRate, int numMotors)
+bool ACServoMotorSerial::connect(const QString& portNames, int baudRate, int numMotors)
 {
+	auto ports = portNames.split(';');
+	if (ports.size() != numMotors)
+	{
+		printf("ERROR: please check `numMotors` option.\n");
+		return false;
+	}
+
 	bool succeed = true;
 
 	motors_.reserve(numMotors);
@@ -20,12 +27,12 @@ bool ACServoMotorSerial::connect(QString portName, int baudRate, int numMotors)
 	for (int i = 0; i < numMotors; i++)
 	{
 		SerialPort* motor = new SerialPort;
+		motors_.emplace_back(motor);
 
-		if (motor->connect(portName, baudRate, QSerialPort::OddParity, QSerialPort::OneStop) == false)
+		if (motor->connect(ports[i], baudRate, QSerialPort::OddParity, QSerialPort::OneStop) == false)
 		{
 			printf("ERROR: motor connect failed.\n");
 
-			delete motor;
 			succeed = false;
 			break;
 		}
@@ -33,16 +40,13 @@ bool ACServoMotorSerial::connect(QString portName, int baudRate, int numMotors)
 		short motionStationNumber = 0;
 		bool paramCheck = paramValue(i, 65, motionStationNumber);
 
-		if (paramCheck == false || motionStationNumber != i)
+		if (paramCheck == false || motionStationNumber != i + 1)
 		{
 			printf("ERROR: motor station number failed.\n");
 
-			delete motor;
 			succeed = false;
 			break;
 		}
-
-		motors_.emplace_back(motor);
 	}
 
 	if (succeed == false)

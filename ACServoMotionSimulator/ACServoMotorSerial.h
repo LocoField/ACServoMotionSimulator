@@ -12,7 +12,7 @@ protected:
 	virtual int checkCompleteData(const std::vector<unsigned char>& data);
 
 public:
-	bool connect(QString portName, int baudRate, int numMotors);
+	bool connect(const QString& portNames, int baudRate, int numMotors);
 	void disconnect();
 
 	void setDisconnectedCallback(std::function<void()> callback);
