@@ -7,6 +7,8 @@
 #include "Motion/ACServoMotionNoLimits2.h"
 #include "Motion/ACServoMotionXPlane11.h"
 
+#include <thread>
+
 #define DIALOG_TITLE "LocoField Motion Simulator"
 
 Dialog::Dialog()
@@ -26,6 +28,25 @@ Dialog::Dialog()
 Dialog::~Dialog()
 {
 	clearMotionModules();
+}
+
+void Dialog::motionThread(int index)
+{
+	std::shared_lock<std::shared_mutex> locker(motionMutex);
+
+	while (1)
+	{
+		motionWaiter.wait(locker);
+
+		if (threadRunning == false)
+			break;
+
+		int trigger = motionTriggers[index];
+		if (trigger < 0)
+			continue;
+
+		motor.trigger(index, motionTriggers[index]);
+	}
 }
 
 void Dialog::initialize()
@@ -85,6 +106,8 @@ void Dialog::initialize()
 
 		for (int i = 0; i < numMotors; i++)
 		{
+			motionTriggers[i] = -1;
+
 			int position = targetPositions[i] - currentPositions[i];
 
 			if (abs(position) < angle)
@@ -97,10 +120,11 @@ void Dialog::initialize()
 			int direction = position > 0 ? 1 : -1;
 			int triggerIndex = direction > 0 ? 1 : 2;
 
-			motor.trigger(i, triggerIndex);
-
+			motionTriggers[i] = triggerIndex;
 			currentPositions[i] += direction * angle;
 		}
+
+		motionWaiter.notify_all();
 
 		updateUI(currentPositions);
 	});
@@ -275,6 +299,7 @@ void Dialog::initialize()
 			{
 				if (checked)
 				{
+					listMotionSource->setEnabled(false);
 					buttonStart->setText("Stop");
 
 					motionSource = motionSources[listMotionSource->currentRow()];
@@ -311,15 +336,27 @@ void Dialog::initialize()
 						}
 					}
 
-					listMotionSource->setEnabled(false);
+
+					motionTriggers.assign(numMotors, -1);
+
+					threadRunning = true;
+
+					for (int i = 0; i < numMotors; i++)
+						std::thread(std::bind(&Dialog::motionThread, this, i)).detach();
+
 					motionTimer->start();
 				}
 				else
 				{
-					buttonStart->setText("3. Start");
-
 					motionTimer->stop();
 					motionSource->stop();
+
+					threadRunning = false;
+					motionWaiter.notify_all();
+
+
+					listMotionSource->setEnabled(true);
+					buttonStart->setText("3. Start");
 
 					QJsonObject optionObject = motionOptions["default"];
 					angle = optionObject["angle"].toInt();
@@ -330,8 +367,6 @@ void Dialog::initialize()
 					{
 						motor.setSpeed(i, speed);
 					}
-
-					listMotionSource->setEnabled(true);
 				}
 			});
 
