@@ -2,6 +2,15 @@
 #include "ACServoMotorSerial.h"
 #include "ACServoMotorHelper.h"
 
+ACServoMotorSerial::ACServoMotorSerial()
+{
+}
+
+ACServoMotorSerial::~ACServoMotorSerial()
+{
+	clear();
+}
+
 int ACServoMotorSerial::checkCompleteData(const std::vector<unsigned char>& data)
 {
 	int expectedLength = ACServoMotorHelper::getDataLength(data);
@@ -22,6 +31,7 @@ bool ACServoMotorSerial::connect(const QString& portNames, int baudRate, int num
 
 	bool succeed = true;
 
+	clear();
 	motors_.reserve(numMotors);
 
 	for (int i = 0; i < numMotors; i++)
@@ -47,6 +57,8 @@ bool ACServoMotorSerial::connect(const QString& portNames, int baudRate, int num
 			succeed = false;
 			break;
 		}
+
+		motor->setDisconnectedCallback(disconnectedCallback_);
 	}
 
 	if (succeed == false)
@@ -62,6 +74,14 @@ void ACServoMotorSerial::disconnect()
 {
 	for (int i = 0; i < motors_.size(); i++)
 	{
+		motors_[i]->disconnect();
+	}
+}
+
+void ACServoMotorSerial::clear()
+{
+	for (int i = 0; i < motors_.size(); i++)
+	{
 		delete motors_[i];
 	}
 
@@ -70,10 +90,7 @@ void ACServoMotorSerial::disconnect()
 
 void ACServoMotorSerial::setDisconnectedCallback(std::function<void()> callback)
 {
-	for (int i = 0; i < motors_.size(); i++)
-	{
-		motors_[i]->setDisconnectedCallback(callback);
-	}
+	disconnectedCallback_ = callback;
 }
 
 bool ACServoMotorSerial::paramValue(int device, unsigned char param, short& value)

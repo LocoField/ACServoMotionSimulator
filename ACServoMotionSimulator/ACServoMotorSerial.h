@@ -5,8 +5,8 @@
 class ACServoMotorSerial
 {
 public:
-	ACServoMotorSerial() = default;
-	~ACServoMotorSerial() = default;
+	explicit ACServoMotorSerial();
+	virtual ~ACServoMotorSerial();
 
 protected:
 	virtual int checkCompleteData(const std::vector<unsigned char>& data);
@@ -14,6 +14,7 @@ protected:
 public:
 	bool connect(const QString& portNames, int baudRate, int numMotors);
 	void disconnect();
+	void clear();
 
 	void setDisconnectedCallback(std::function<void()> callback);
 
@@ -32,6 +33,7 @@ public:
 
 protected:
 	std::vector<SerialPort*> motors_;
+	std::function<void()> disconnectedCallback_;
 
 };
 
