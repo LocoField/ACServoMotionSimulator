@@ -34,7 +34,6 @@ private:
 	QTimer* motionTimer;
 	std::shared_mutex motionMutex;
 	std::condition_variable_any motionWaiter;
-	bool threadRunning = false;
 
 	std::vector<int> motionTriggers;
 	std::vector<int> currentPositions;

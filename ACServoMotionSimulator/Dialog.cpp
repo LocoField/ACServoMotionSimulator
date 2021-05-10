@@ -34,18 +34,15 @@ void Dialog::motionThread(int index)
 {
 	std::shared_lock<std::shared_mutex> locker(motionMutex);
 
-	while (1)
+	motionWaiter.wait(locker);
+
+	int trigger = motionTriggers[index];
+	if (trigger > 0)
 	{
-		motionWaiter.wait(locker);
-
-		if (threadRunning == false)
-			break;
-
-		int trigger = motionTriggers[index];
-		if (trigger < 0)
-			continue;
-
-		motor.trigger(index, motionTriggers[index]);
+		if (motor.trigger(index, motionTriggers[index]) == false)
+		{
+			printf("motor trigger failed: %d\n", index);
+		}
 	}
 }
 
@@ -54,8 +51,6 @@ void Dialog::initialize()
 	motionTimer = new QTimer;
 	connect(motionTimer, &QTimer::timeout, [this]()
 	{
-		Sleep(1);
-
 		Vector3 angleMotion;
 		Vector4 axisMotion; // applied 4-axis system only
 
@@ -104,6 +99,13 @@ void Dialog::initialize()
 			targetPositions[3] += axisMotion.rr * 1000 * 2000;
 		}
 
+		std::thread t[4];
+
+		for (int i = 0; i < numMotors; i++)
+			t[i] = std::thread(std::bind(&Dialog::motionThread, this, i));
+
+		Sleep(1);
+
 		for (int i = 0; i < numMotors; i++)
 		{
 			motionTriggers[i] = -1;
@@ -125,6 +127,9 @@ void Dialog::initialize()
 		}
 
 		motionWaiter.notify_all();
+
+		for (int i = 0; i < numMotors; i++)
+			t[i].join();
 
 		updateUI(currentPositions);
 	});
@@ -338,21 +343,12 @@ void Dialog::initialize()
 
 
 					motionTriggers.assign(numMotors, -1);
-
-					threadRunning = true;
-
-					for (int i = 0; i < numMotors; i++)
-						std::thread(std::bind(&Dialog::motionThread, this, i)).detach();
-
 					motionTimer->start();
 				}
 				else
 				{
 					motionTimer->stop();
 					motionSource->stop();
-
-					threadRunning = false;
-					motionWaiter.notify_all();
 
 
 					listMotionSource->setEnabled(true);
