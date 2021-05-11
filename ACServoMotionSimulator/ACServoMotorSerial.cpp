@@ -144,9 +144,7 @@ void ACServoMotorSerial::emergency(bool on)
 {
 	for (int i = 0; i < motors_.size(); i++)
 	{
-		auto command = ACServoMotorHelper::emergency(i, on);
-
-		motors_[i]->write({ (char*)command.data(), (int)command.size() });
+		motors_[i]->write(ACServoMotorHelper::emergency(i, on));
 	}
 
 	for (int i = 0; i < motors_.size(); i++)

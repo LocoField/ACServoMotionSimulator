@@ -13,6 +13,21 @@ SerialPort::SerialPort()
 			printf("ERROR: device disconnected.\n");
 		}
 	});
+
+	QObject::connect(this, &QSerialPort::readyRead, [this]()
+	{
+		QByteArray bytes = readAll();
+		receivedData += bytes;
+
+		int length = checkCompleteData({ receivedData.data(), receivedData.data() + receivedData.size() });
+		if (length == -1)
+			return;
+
+		std::unique_lock<std::mutex> locker(receiveMutex);
+		receivedQueue.push_back(receivedData);
+
+		receivedData.clear();
+	});
 }
 
 void SerialPort::availablePorts(std::vector<QString>& ports)
@@ -50,88 +65,44 @@ bool SerialPort::isConnected()
 	return __super::isOpen();
 }
 
-std::vector<unsigned char> SerialPort::writeAndRead(const std::vector<unsigned char>& data)
+void SerialPort::setDisconnectedCallback(std::function<void()> callback)
 {
-	write({ (char*)data.data(), (int)data.size() });
+	disconnectedCallback = callback;
+}
 
+qint64 SerialPort::write(const std::vector<unsigned char>& data)
+{
+	return __super::write({ (char*)data.data(), (int)data.size() });
+}
+
+std::vector<unsigned char> SerialPort::read(int timeout)
+{
 	std::vector<unsigned char> received;
+	int count = timeout / 10;
 
-	while (1)
+	for (int i = 0; i < count; i++)
 	{
-		QByteArray bytes = read();
-		if (bytes.isEmpty())
+		std::unique_lock<std::mutex> locker(receiveMutex);
+
+		if (receivedQueue.size() > 0)
+		{
+			auto& data = receivedQueue.front();
+			received = { data.data(), data.data() + data.size() };
+
+			receivedQueue.pop_front();
 			break;
+		}
 
-		received.insert(received.end(), bytes.cbegin(), bytes.cend());
-
-		int length = checkCompleteData(received);
-		if (length == -1)
-			continue;
-
-		break;
+		Sleep(10);
 	}
-
-#ifdef _DEBUG
-	QString command;
-
-	for (auto it = received.cbegin(); it != received.cend(); ++it)
-	{
-		unsigned char hex = *it;
-		QString hex_format = QString(" %1").arg(hex, 2, 16, QLatin1Char('0'));
-
-		command.append(hex_format);
-	}
-
-	cout << "<--" << command.toStdString() << endl;
-#endif
 
 	return received;
 }
 
-qint64 SerialPort::write(const QByteArray& data)
+std::vector<unsigned char> SerialPort::writeAndRead(const std::vector<unsigned char>& data, int timeout)
 {
-	if (isConnected())
-	{
-		qint64 retval = __super::write(data);
-		waitForBytesWritten();
-		return retval;
-	}
+	if (write(data) != data.size())
+		return std::vector<unsigned char>();
 
-	return 0;
-}
-
-QByteArray SerialPort::read(int timeout)
-{
-	if (isConnected())
-	{
-		if (waitForReadyRead(timeout))
-		{
-			return __super::readAll();
-		}
-	}
-
-	return QByteArray();
-}
-
-bool SerialPort::write(char code)
-{
-	bool re = putChar(code);
-	waitForBytesWritten();
-	return re;
-}
-
-bool SerialPort::read(char& code, int timeout)
-{
-	if (waitForReadyRead(timeout))
-	{
-		getChar(&code);
-		return true;
-	}
-
-	return false;
-}
-
-void SerialPort::setDisconnectedCallback(std::function<void()> callback)
-{
-	disconnectedCallback = callback;
+	return read(timeout);
 }

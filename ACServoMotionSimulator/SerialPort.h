@@ -2,6 +2,9 @@
 
 #include <QtSerialPort/QSerialPort>
 
+#include <mutex>
+#include <deque>
+
 class SerialPort : protected QSerialPort
 {
 public:
@@ -21,16 +24,16 @@ public:
 
 	void setDisconnectedCallback(std::function<void()> callback);
 
-	std::vector<unsigned char> writeAndRead(const std::vector<unsigned char>& data);
-
-	qint64 write(const QByteArray& data);
-	QByteArray read(int timeout = 2000);
-
-	bool write(char code);
-	bool read(char& code, int timeout = 2000);
+	qint64 write(const std::vector<unsigned char>& data);
+	std::vector<unsigned char> read(int timeout = 2000);
+	std::vector<unsigned char> writeAndRead(const std::vector<unsigned char>& data, int timeout = 2000);
 
 private:
 	std::function<void()> disconnectedCallback;
+
+	std::mutex receiveMutex;
+	std::deque<QByteArray> receivedQueue;
+	QByteArray receivedData;
 
 };
 
