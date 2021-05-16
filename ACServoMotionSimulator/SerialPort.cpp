@@ -50,19 +50,39 @@ bool SerialPort::isConnected()
 	return __super::isOpen();
 }
 
-std::vector<unsigned char> SerialPort::writeAndRead(const std::vector<unsigned char>& data)
+qint64 SerialPort::write(const std::vector<unsigned char>& data)
 {
-	write({ (char*)data.data(), (int)data.size() });
+	clear(Input);
+	return __super::write({ (char*)data.data(), (int)data.size() });
+}
+
+std::vector<unsigned char> SerialPort::read(int timeout)
+{
+	if (isConnected())
+	{
+		if (waitForReadyRead(timeout))
+		{
+			QByteArray data = __super::readAll();
+			return { data.data(), data.data() + data.size() };
+		}
+	}
+
+	return std::vector<unsigned char>();
+}
+
+std::vector<unsigned char> SerialPort::writeAndRead(const std::vector<unsigned char>& data, int timeout)
+{
+	write(data);
 
 	std::vector<unsigned char> received;
 
 	while (1)
 	{
-		QByteArray bytes = read();
-		if (bytes.isEmpty())
+		auto data = read(timeout);
+		if (data.size() == 0)
 			break;
 
-		received.insert(received.end(), bytes.cbegin(), bytes.cend());
+		received.insert(received.end(), data.cbegin(), data.cend());
 
 		int length = checkCompleteData(received);
 		if (length == -1)
@@ -71,64 +91,7 @@ std::vector<unsigned char> SerialPort::writeAndRead(const std::vector<unsigned c
 		break;
 	}
 
-#ifdef _DEBUG
-	QString command;
-
-	for (auto it = received.cbegin(); it != received.cend(); ++it)
-	{
-		unsigned char hex = *it;
-		QString hex_format = QString(" %1").arg(hex, 2, 16, QLatin1Char('0'));
-
-		command.append(hex_format);
-	}
-
-	cout << "<--" << command.toStdString() << endl;
-#endif
-
 	return received;
-}
-
-qint64 SerialPort::write(const QByteArray& data)
-{
-	if (isConnected())
-	{
-		qint64 retval = __super::write(data);
-		waitForBytesWritten();
-		return retval;
-	}
-
-	return 0;
-}
-
-QByteArray SerialPort::read(int timeout)
-{
-	if (isConnected())
-	{
-		if (waitForReadyRead(timeout))
-		{
-			return __super::readAll();
-		}
-	}
-
-	return QByteArray();
-}
-
-bool SerialPort::write(char code)
-{
-	bool re = putChar(code);
-	waitForBytesWritten();
-	return re;
-}
-
-bool SerialPort::read(char& code, int timeout)
-{
-	if (waitForReadyRead(timeout))
-	{
-		getChar(&code);
-		return true;
-	}
-
-	return false;
 }
 
 void SerialPort::setDisconnectedCallback(std::function<void()> callback)

@@ -30,22 +30,6 @@ Dialog::~Dialog()
 	clearMotionModules();
 }
 
-void Dialog::motionThread(int index)
-{
-	std::shared_lock<std::shared_mutex> locker(motionMutex);
-
-	motionWaiter.wait(locker);
-
-	int trigger = motionTriggers[index];
-	if (trigger > 0)
-	{
-		if (motor.trigger(index, motionTriggers[index]) == false)
-		{
-			printf("motor trigger failed: %d\n", index);
-		}
-	}
-}
-
 void Dialog::initialize()
 {
 	motionTimer = new QTimer;
@@ -99,13 +83,6 @@ void Dialog::initialize()
 			targetPositions[3] += axisMotion.rr * 1000 * 2000;
 		}
 
-		std::thread t[4];
-
-		for (int i = 0; i < numMotors; i++)
-			t[i] = std::thread(std::bind(&Dialog::motionThread, this, i));
-
-		Sleep(1);
-
 		for (int i = 0; i < numMotors; i++)
 		{
 			motionTriggers[i] = -1;
@@ -126,12 +103,18 @@ void Dialog::initialize()
 			currentPositions[i] += direction * angle;
 		}
 
-		motionWaiter.notify_all();
-
 		for (int i = 0; i < numMotors; i++)
-			t[i].join();
+		{
+			int trigger = motionTriggers[i];
+			if (trigger > 0)
+			{
+				motor.trigger(i, motionTriggers[i]);
+				motor.normal(i);
+			}
+		}
 
 		updateUI(currentPositions);
+		Sleep(1);
 	});
 
 	auto motorLayout = new QVBoxLayout;

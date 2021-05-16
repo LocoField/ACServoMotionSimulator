@@ -144,9 +144,7 @@ void ACServoMotorSerial::emergency(bool on)
 {
 	for (int i = 0; i < motors_.size(); i++)
 	{
-		auto command = ACServoMotorHelper::emergency(i, on);
-
-		motors_[i]->write({ (char*)command.data(), (int)command.size() });
+		motors_[i]->write(ACServoMotorHelper::emergency(i, on));
 	}
 
 	for (int i = 0; i < motors_.size(); i++)
@@ -193,6 +191,14 @@ bool ACServoMotorSerial::trigger(int device, unsigned char index)
 	if (motors_.size() <= device) return false;
 
 	motors_[device]->writeAndRead(ACServoMotorHelper::trigger(device, index));
+
+	return true;
+}
+
+bool ACServoMotorSerial::normal(int device)
+{
+	if (motors_.size() <= device) return false;
+
 	motors_[device]->writeAndRead(ACServoMotorHelper::normal(device));
 
 	return true;

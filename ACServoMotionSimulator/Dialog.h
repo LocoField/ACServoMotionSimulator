@@ -17,7 +17,6 @@ public:
 	virtual ~Dialog();
 
 protected:
-	void motionThread(int index);
 	void initialize();
 	void updateUI(const std::vector<int>& positions);
 
@@ -32,8 +31,6 @@ private:
 	QWidget* mainWidget;
 
 	QTimer* motionTimer;
-	std::shared_mutex motionMutex;
-	std::condition_variable_any motionWaiter;
 
 	std::vector<int> motionTriggers;
 	std::vector<int> currentPositions;

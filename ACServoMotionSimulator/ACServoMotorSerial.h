@@ -24,6 +24,7 @@ public:
 	bool setCycle(int device, int cycle, unsigned char index);
 	bool setSpeed(int device, unsigned short speed);
 	bool trigger(int device, unsigned char index);
+	bool normal(int device);
 
 	void emergency(bool on);
 	bool power(bool on);
