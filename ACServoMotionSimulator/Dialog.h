@@ -4,6 +4,8 @@
 
 #include <QtWidgets/QDialog>
 
+#include <shared_mutex>
+
 class QVBoxLayout;
 class QTimer;
 class ACServoMotionBase;
@@ -30,13 +32,14 @@ private:
 
 	QTimer* motionTimer;
 
+	std::vector<int> motionTriggers;
+	std::vector<int> currentPositions;
+
 	std::vector<ACServoMotionBase*> motionSources;
 	ACServoMotionBase* motionSource = nullptr;
 	std::map<QString, QJsonObject> motionOptions;
 
 	ACServoMotorSerial motor;
-
-	std::vector<int> currentPositions;
 
 	int angle = 5000; // difference
 	int baudRate = 115200;
@@ -44,7 +47,7 @@ private:
 	double gain = 1;
 	int limit = 0;
 	int numMotors = 0;
-	QString portName;
+	QString portNames;
 	int sign = 1; // 1 or -1
 	int speed = 1000; // rpm
 

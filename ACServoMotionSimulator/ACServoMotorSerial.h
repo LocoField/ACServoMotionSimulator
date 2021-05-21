@@ -2,34 +2,39 @@
 
 #include "SerialPort.h"
 
-class ACServoMotorSerial : public SerialPort
+class ACServoMotorSerial
 {
 public:
-	ACServoMotorSerial() = default;
-	~ACServoMotorSerial() = default;
+	explicit ACServoMotorSerial();
+	virtual ~ACServoMotorSerial();
 
 protected:
 	virtual int checkCompleteData(const std::vector<unsigned char>& data);
 
 public:
-	bool connect(QString portName, int baudRate, int numMotors);
+	bool connect(const QString& portNames, int baudRate, int numMotors);
+	void disconnect();
+	void clear();
 
-	bool paramValue(int device, int param, short& value);
+	void setDisconnectedCallback(std::function<void()> callback);
+
+	bool paramValue(int device, unsigned char param, short& value);
 	bool position(int device, int& pos);
-	void wait(int timeout = 2000);
 
-	bool setCycle(int cycle, int index, int device = -1);
-	bool setSpeed(int speed, int device = -1);
-
-	bool power(bool on, int device = -1);
-	bool home(int device = -1);
-	bool stop(int device = -1);
-	bool trigger(int index, int device = -1);
+	bool setCycle(int device, int cycle, unsigned char index);
+	bool setSpeed(int device, unsigned short speed);
+	bool trigger(int device, unsigned char index);
+	bool normal(int device);
 
 	void emergency(bool on);
+	bool power(bool on);
+	bool home();
+	bool stop();
+	void wait(int timeout = 2000);
 
 protected:
-	int numMotors_ = 0;
+	std::vector<SerialPort*> motors_;
+	std::function<void()> disconnectedCallback_;
 
 };
 

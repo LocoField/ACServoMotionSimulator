@@ -7,6 +7,8 @@
 #include "Motion/ACServoMotionNoLimits2.h"
 #include "Motion/ACServoMotionXPlane11.h"
 
+#include <thread>
+
 #define DIALOG_TITLE "LocoField Motion Simulator"
 
 Dialog::Dialog()
@@ -33,8 +35,6 @@ void Dialog::initialize()
 	motionTimer = new QTimer;
 	connect(motionTimer, &QTimer::timeout, [this]()
 	{
-		Sleep(1);
-
 		Vector3 angleMotion;
 		Vector4 axisMotion; // applied 4-axis system only
 
@@ -85,6 +85,8 @@ void Dialog::initialize()
 
 		for (int i = 0; i < numMotors; i++)
 		{
+			motionTriggers[i] = -1;
+
 			int position = targetPositions[i] - currentPositions[i];
 
 			if (abs(position) < angle)
@@ -97,12 +99,22 @@ void Dialog::initialize()
 			int direction = position > 0 ? 1 : -1;
 			int triggerIndex = direction > 0 ? 1 : 2;
 
-			motor.trigger(triggerIndex, i);
-
+			motionTriggers[i] = triggerIndex;
 			currentPositions[i] += direction * angle;
 		}
 
+		for (int i = 0; i < numMotors; i++)
+		{
+			int trigger = motionTriggers[i];
+			if (trigger > 0)
+			{
+				motor.trigger(i, motionTriggers[i]);
+				motor.normal(i);
+			}
+		}
+
 		updateUI(currentPositions);
+		Sleep(1);
 	});
 
 	auto motorLayout = new QVBoxLayout;
@@ -163,7 +175,7 @@ void Dialog::initialize()
 			{
 				if (checked)
 				{
-					bool connect = motor.connect(portName, baudRate, numMotors);
+					bool connect = motor.connect(portNames, baudRate, numMotors);
 
 					if (connect == false)
 					{
@@ -172,11 +184,14 @@ void Dialog::initialize()
 						return;
 					}
 
-					motor.setCycle(center * sign, 0);
-					motor.setCycle(angle * sign, 1);
-					motor.setCycle(-angle * sign, 2);
+					for (int i = 0; i < numMotors; i++)
+					{
+						motor.setCycle(i, center * sign, 0);
+						motor.setCycle(i, angle * sign, 1);
+						motor.setCycle(i, -angle * sign, 2);
 
-					motor.setSpeed(speed);
+						motor.setSpeed(i, speed);
+					}
 
 					buttonMotorConnect->setText("Disconnect");
 				}
@@ -199,7 +214,9 @@ void Dialog::initialize()
 
 					motor.power(true);
 					motor.home();
-					motor.trigger(0);
+
+					for (int i = 0; i < numMotors; i++)
+						motor.trigger(i, 0);
 
 					buttonMotorStart->setText("Stop");
 				}
@@ -213,12 +230,12 @@ void Dialog::initialize()
 						int pos = 0;
 
 						motor.position(i, pos);
-						motor.setCycle(-pos, 3, i);
+						motor.setCycle(i, -pos, 3);
+						motor.trigger(i, 3);
 
 						i++;
 					}
 
-					motor.trigger(3);
 					motor.wait();
 
 					for (int i = 0; i < numMotors; i++)
@@ -270,6 +287,7 @@ void Dialog::initialize()
 			{
 				if (checked)
 				{
+					listMotionSource->setEnabled(false);
 					buttonStart->setText("Stop");
 
 					motionSource = motionSources[listMotionSource->currentRow()];
@@ -299,28 +317,35 @@ void Dialog::initialize()
 						{
 							speed = optionObject["speed"].toInt();
 
-							motor.setSpeed(speed);
+							for (int i = 0; i < numMotors; i++)
+							{
+								motor.setSpeed(i, speed);
+							}
 						}
 					}
 
-					listMotionSource->setEnabled(false);
+
+					motionTriggers.assign(numMotors, -1);
 					motionTimer->start();
 				}
 				else
 				{
-					buttonStart->setText("3. Start");
-
 					motionTimer->stop();
 					motionSource->stop();
+
+
+					listMotionSource->setEnabled(true);
+					buttonStart->setText("3. Start");
 
 					QJsonObject optionObject = motionOptions["default"];
 					angle = optionObject["angle"].toInt();
 					gain = optionObject["gain"].toDouble();
 					speed = optionObject["speed"].toInt();
 
-					motor.setSpeed(speed);
-
-					listMotionSource->setEnabled(true);
+					for (int i = 0; i < numMotors; i++)
+					{
+						motor.setSpeed(i, speed);
+					}
 				}
 			});
 
@@ -370,10 +395,9 @@ void Dialog::initialize()
 
 				for (int i = 0; i < numMotors; i++)
 				{
-					motor.setCycle(limit * sign, 3, i);
+					motor.setCycle(i, limit * sign, 3);
+					motor.trigger(i, 3);
 				}
-
-				motor.trigger(3);
 			}
 			else
 			{
@@ -385,12 +409,11 @@ void Dialog::initialize()
 					int pos = 0;
 
 					motor.position(i, pos);
-					motor.setCycle(-pos, 3, i);
+					motor.setCycle(i, -pos, 3);
+					motor.trigger(i, 3);
 
 					i++;
 				}
-
-				motor.trigger(3);
 			}
 		});
 
@@ -479,7 +502,7 @@ bool Dialog::loadOption()
 					gain = defaultOption["gain"].toDouble();
 					limit = defaultOption["limit"].toInt();
 					numMotors = defaultOption["numMotors"].toInt();
-					portName = defaultOption["port"].toString();
+					portNames = defaultOption["port"].toString();
 					sign = defaultOption["sign"].toInt();
 					speed = defaultOption["speed"].toInt();
 				}
