@@ -11,6 +11,62 @@
 
 #define DIALOG_TITLE "LocoField Motion Simulator"
 
+class PlanePoints
+{
+	struct Point3i
+	{
+		int x;
+		int y;
+		int z;
+	};
+
+public:
+	PlanePoints(int width, int height)
+	{
+		p1.x = -width / 2;
+		p1.y = height / 2;
+		p1.z = 0;
+
+		p2.x = width / 2;
+		p2.y = height / 2;
+		p2.z = 0;
+
+		p3.x = -width / 2;
+		p3.y = -height / 2;
+		p3.z = 0;
+
+		p4.x = width / 2;
+		p4.y = -height / 2;
+		p4.z = 0;
+	}
+
+	void rotate(float roll, float pitch)
+	{
+		float a = -tan(roll * M_PI / 180);
+		float b = tan(pitch * M_PI / 180);
+
+		p1.z = -(a * p1.x + b * p1.y);
+		p2.z = -(a * p2.x + b * p2.y);
+		p3.z = -(a * p3.x + b * p3.y);
+		p4.z = -(a * p4.x + b * p4.y);
+	}
+
+	void getZPoints(int& pz1, int& pz2, int& pz3, int& pz4)
+	{
+		pz1 = p1.z;
+		pz2 = p2.z;
+		pz3 = p3.z;
+		pz4 = p4.z;
+	}
+
+protected:
+	Point3i p1;
+	Point3i p2;
+	Point3i p3;
+	Point3i p4;
+
+};
+
 Dialog::Dialog()
 {
 	bool retval = loadOption();
@@ -58,29 +114,26 @@ void Dialog::initialize()
 
 		std::vector<int> targetPositions(numMotors, center);
 
-		if (numMotors == 2)
-		{
-			targetPositions[0] += (angleMotion.x * angle);
-			targetPositions[1] -= (angleMotion.x * angle);
-			targetPositions[0] -= (angleMotion.y * angle);
-			targetPositions[1] -= (angleMotion.y * angle);
-		}
-		else if (numMotors == 4)
-		{
-			targetPositions[0] += (angleMotion.x * angle);
-			targetPositions[1] -= (angleMotion.x * angle);
-			targetPositions[2] += (angleMotion.x * angle);
-			targetPositions[3] -= (angleMotion.x * angle);
+		if (numMotors != 4)
+			return;
 
-			targetPositions[0] += (angleMotion.y * angle);
-			targetPositions[1] += (angleMotion.y * angle);
-			targetPositions[2] -= (angleMotion.y * angle);
-			targetPositions[3] -= (angleMotion.y * angle);
+		{
+			int pz1, pz2, pz3, pz4;
 
-			targetPositions[0] += axisMotion.ll * 1000 * 2000; // meter * motor rotation by pitch (10000 / 5)
-			targetPositions[1] += axisMotion.lr * 1000 * 2000;
-			targetPositions[2] += axisMotion.rl * 1000 * 2000;
-			targetPositions[3] += axisMotion.rr * 1000 * 2000;
+			PlanePoints pp(width, height);
+			pp.rotate(angleMotion.x, angleMotion.y);
+			pp.getZPoints(pz1, pz2, pz3, pz4);
+
+			// 625 (one rotation 2500 / 4 mm pitch)
+			targetPositions[0] -= pz1 * 625;
+			targetPositions[1] -= pz2 * 625;
+			targetPositions[2] -= pz3 * 625;
+			targetPositions[3] -= pz4 * 625;
+
+			targetPositions[0] += axisMotion.ll * 1000 * 625;
+			targetPositions[1] += axisMotion.lr * 1000 * 625;
+			targetPositions[2] += axisMotion.rl * 1000 * 625;
+			targetPositions[3] += axisMotion.rr * 1000 * 625;
 		}
 
 		for (int i = 0; i < numMotors; i++)

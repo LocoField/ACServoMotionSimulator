@@ -42,6 +42,8 @@ private:
 	ACServoMotorSerial motor;
 
 	int angle = 5000; // difference
+	int width = 500;
+	int height = 1000;
 	int baudRate = 115200;
 	int center = 0;
 	double gain = 1;
