@@ -4,15 +4,10 @@
         "angle": 5000,
         "baudRate": 115200,
         "center": 100000,
-        "gain": 1,
-        "limit": 220000,
+        "limit": 250000,
         "numMotors": 4,
-        "port": "COM13",
+        "port": "COM21;COM22;COM23;COM24",
         "sign": 1,
-        "speed": 200
-    },
-    "Keyboard":
-    {
-        "gain": 10
+        "speed": 500
     }
 }

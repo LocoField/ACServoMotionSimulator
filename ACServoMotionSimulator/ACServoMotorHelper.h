@@ -24,6 +24,7 @@ public:
 	static Command readEncoder(int address);
 
 	static Command setCycle(int address, int cycle, unsigned char index);
+	static Command setSpeed(int address, unsigned short speed, unsigned char index);
 	static Command setSpeed(int address, unsigned short speed);
 
 	static Command home(int address);

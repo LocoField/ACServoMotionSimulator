@@ -80,8 +80,7 @@ bool ACServoMotionPCars2::process(void* arg)
 		case GAME_EXITED:
 		case GAME_INGAME_RESTARTING:
 		{
-			angle_ = Vector3();
-			axis_ = Vector4();
+			memset(&motion_, 0, sizeof(motion_));
 
 			suspensionInitialized = false;
 
@@ -97,9 +96,11 @@ bool ACServoMotionPCars2::process(void* arg)
 				{
 					suspensionCenter[i] = pDataLocal->mSuspensionTravel[i];
 				}
+
+				return false;
 			}
 
-			auto angleFilter = [](double& angle, double range)
+			auto angleFilter = [](float& angle, float range)
 			{
 				angle = min(angle, range);
 				angle = max(angle, -range);
@@ -110,21 +111,21 @@ bool ACServoMotionPCars2::process(void* arg)
 			double y = pDataLocal->mOrientation[1]; // heading
 			double z = pDataLocal->mOrientation[2];
 
-			double roll = (z * 180 / M_PI);
-			double pitch = (x * 180 / M_PI);
-			double yaw = (y * 180 / M_PI);
-
-			angleFilter(roll, 15);
-			angleFilter(pitch, 15);
-
-			angle_.x = (float)roll;
-			angle_.y = (float)pitch;
+			motion_.roll = (float)(z * 180 / M_PI) * 5;
+			motion_.pitch = (float)(x * 180 / M_PI) * 5;
 
 			// Suspension position
-			axis_.ll = pDataLocal->mSuspensionTravel[0] - suspensionCenter[0];
-			axis_.lr = pDataLocal->mSuspensionTravel[1] - suspensionCenter[1];
-			axis_.rl = pDataLocal->mSuspensionTravel[2] - suspensionCenter[2];
-			axis_.rr = pDataLocal->mSuspensionTravel[3] - suspensionCenter[3];
+			motion_.ll = (pDataLocal->mSuspensionTravel[0] - suspensionCenter[0]) * 1000;
+			motion_.lr = (pDataLocal->mSuspensionTravel[1] - suspensionCenter[1]) * 1000;
+			motion_.rl = (pDataLocal->mSuspensionTravel[2] - suspensionCenter[2]) * 1000;
+			motion_.rr = (pDataLocal->mSuspensionTravel[3] - suspensionCenter[3]) * 1000;
+
+			angleFilter(motion_.roll, 15);
+			angleFilter(motion_.pitch, 15);
+			angleFilter(motion_.ll, 15);
+			angleFilter(motion_.lr, 15);
+			angleFilter(motion_.rl, 15);
+			angleFilter(motion_.rr, 15);
 
 			break;
 		}

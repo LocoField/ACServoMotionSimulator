@@ -15,8 +15,8 @@
 2. Parameters   
     - pn109 = 1 : one time smooth filtering for acc. and dec.   
     - pn110 = 50 : smoothing filter time   
-    - pn113 = 20 : feedforward %   
-    - pn114 = 10 : feedforward filter time   
+    - pn113 = 100 : feedforward %   
+    - pn114 = 50 : feedforward filter time   
     
 3. Communication   
     - pn065 = n : communication station number   

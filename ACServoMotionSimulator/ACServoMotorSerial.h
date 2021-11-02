@@ -22,7 +22,9 @@ public:
 	bool position(int device, int& pos);
 
 	bool setCycle(int device, int cycle, unsigned char index);
+	bool setSpeed(int device, unsigned short speed, unsigned char index);
 	bool setSpeed(int device, unsigned short speed);
+
 	bool trigger(int device, unsigned char index);
 	bool normal(int device);
 

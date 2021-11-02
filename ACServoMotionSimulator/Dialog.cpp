@@ -9,7 +9,7 @@
 
 #include <thread>
 
-#define DIALOG_TITLE "LocoField Motion Simulator"
+#define DIALOG_TITLE "LocoField Motion Simulator v2.1"
 
 class PlanePoints
 {
@@ -49,6 +49,27 @@ public:
 		p2.z = -(a * p2.x + b * p2.y);
 		p3.z = -(a * p3.x + b * p3.y);
 		p4.z = -(a * p4.x + b * p4.y);
+	}
+
+	void translate(float heave, float sway, float surge)
+	{
+		float sway_l = 0, sway_r = 0;
+		float surge_f = 0, surge_b = 0;
+
+		if (sway < 0)
+			sway_l = -sway;
+		else
+			sway_r = sway;
+
+		if (surge < 0)
+			surge_f = -surge;
+		else
+			surge_b = surge;
+
+		p1.z += heave + sway_l + surge_f;
+		p2.z += heave + sway_r + surge_f;
+		p3.z += heave + sway_l + surge_b;
+		p4.z += heave + sway_r + surge_b;
 	}
 
 	void getZPoints(int& pz1, int& pz2, int& pz3, int& pz4)
@@ -91,28 +112,27 @@ void Dialog::initialize()
 	motionTimer = new QTimer;
 	connect(motionTimer, &QTimer::timeout, [this]()
 	{
-		Vector3 angleMotion;
-		Vector4 axisMotion; // applied 4-axis system only
+		Motion data;
 
 		if (motionSource)
 		{
 			if (motionSource->process(this) == false)
 				return;
 
-			motionSource->angle(angleMotion);
-			motionSource->axis(axisMotion);
-
-			angleMotion.x *= gain;
-			angleMotion.y *= gain;
-			angleMotion.z *= gain;
+			motionSource->motion(data);
 		}
 
-		printf("%u\t%2.5f    %2.5f    %2.5f\n\t\t%2.5f    %2.5f    %2.5f    %2.5f\n",
-			GetTickCount(), angleMotion.x, angleMotion.y, angleMotion.z,
-			axisMotion.ll, axisMotion.lr, axisMotion.rl, axisMotion.rr);
+#ifdef _DEBUG
+		printf("%2.5f    %2.5f    %2.5f\n%2.5f    %2.5f    %2.5f\n%2.5f    %2.5f    %2.5f    %2.5f\n%u\n",
+			data.roll, data.pitch, data.heave,
+			data.yaw, data.sway, data.surge,
+			data.ll, data.lr, data.rl, data.rr,
+			GetTickCount());
+#endif
 
 
 		std::vector<int> targetPositions(numMotors, center);
+		std::vector<int> motionTriggers(numMotors, -1);
 
 		if (numMotors != 4)
 			return;
@@ -121,45 +141,54 @@ void Dialog::initialize()
 			int pz1, pz2, pz3, pz4;
 
 			PlanePoints pp(width, height);
-			pp.rotate(angleMotion.x, angleMotion.y);
+			pp.rotate(data.roll, data.pitch);
+			pp.translate(data.heave, data.sway, data.surge);
 			pp.getZPoints(pz1, pz2, pz3, pz4);
 
-			// 625 (one rotation 2500 / 4 mm pitch)
-			targetPositions[0] -= pz1 * 625;
-			targetPositions[1] -= pz2 * 625;
-			targetPositions[2] -= pz3 * 625;
-			targetPositions[3] -= pz4 * 625;
+			//printf("%d    %d    %d    %d\n\n", pz1, pz2, pz3, pz4);
 
-			targetPositions[0] += axisMotion.ll * 1000 * 625;
-			targetPositions[1] += axisMotion.lr * 1000 * 625;
-			targetPositions[2] += axisMotion.rl * 1000 * 625;
-			targetPositions[3] += axisMotion.rr * 1000 * 625;
+			// 625 (one rotation 2500 / 4 mm pitch), but ...
+			targetPositions[0] -= pz1 * 500;
+			targetPositions[1] -= pz2 * 500;
+			targetPositions[2] -= pz3 * 500;
+			targetPositions[3] -= pz4 * 500;
+
+			targetPositions[0] += data.ll * 500;
+			targetPositions[1] += data.lr * 500;
+			targetPositions[2] += data.rl * 500;
+			targetPositions[3] += data.rr * 500;
 		}
 
 		for (int i = 0; i < numMotors; i++)
 		{
-			motionTriggers[i] = -1;
+			if (targetPositions[i] < 0 || targetPositions[i] > limit)
+				continue;
 
+			int step = angle;
 			int position = targetPositions[i] - currentPositions[i];
-
-			if (abs(position) < angle)
-				continue;
-
-			if (currentPositions[i] + position < 0 ||
-				currentPositions[i] + position >= limit)
-				continue;
-
 			int direction = position > 0 ? 1 : -1;
-			int triggerIndex = direction > 0 ? 1 : 2;
+			int triggerIndex = direction > 0 ? 0 : 1;
+
+			if (abs(position) < step)
+			{
+				continue;
+			}
 
 			motionTriggers[i] = triggerIndex;
-			currentPositions[i] += direction * angle;
+			currentPositions[i] += (step * direction);
+
+			if (currentPositions[i] < 0 ||
+				currentPositions[i] >= limit)
+			{
+				motionTriggers[i] = -1;
+				currentPositions[i] -= (step * direction);
+			}
 		}
 
 		for (int i = 0; i < numMotors; i++)
 		{
 			int trigger = motionTriggers[i];
-			if (trigger > 0)
+			if (trigger >= 0)
 			{
 				motor.trigger(i, motionTriggers[i]);
 				motor.normal(i);
@@ -239,10 +268,6 @@ void Dialog::initialize()
 
 					for (int i = 0; i < numMotors; i++)
 					{
-						motor.setCycle(i, center * sign, 0);
-						motor.setCycle(i, angle * sign, 1);
-						motor.setCycle(i, -angle * sign, 2);
-
 						motor.setSpeed(i, speed);
 					}
 
@@ -268,25 +293,42 @@ void Dialog::initialize()
 					motor.power(true);
 					motor.home();
 
+					Sleep(1000);
+
 					for (int i = 0; i < numMotors; i++)
+					{
+						motor.setCycle(i, center * sign, 0);
+
 						motor.trigger(i, 0);
+						motor.normal(i);
+					}
+
+					motor.wait();
+
+					for (int i = 0; i < numMotors; i++)
+					{
+						motor.setCycle(i, angle, 0);
+						motor.setCycle(i, -angle, 1);
+					}
 
 					buttonMotorStart->setText("Stop");
 				}
 				else
 				{
 					motor.stop();
-					Sleep(100);
 
-					for (int i = 0; i < numMotors;)
+					Sleep(1000);
+
+					for (int i = 0; i < numMotors; i++)
 					{
 						int pos = 0;
 
 						motor.position(i, pos);
-						motor.setCycle(i, -pos, 3);
-						motor.trigger(i, 3);
 
-						i++;
+						motor.setCycle(i, -pos, 0);
+
+						motor.trigger(i, 0);
+						motor.normal(i);
 					}
 
 					motor.wait();
@@ -356,29 +398,9 @@ void Dialog::initialize()
 					{
 						QJsonObject optionObject = motionOptions[motionName];
 
-						if (optionObject.find("angle") != optionObject.end())
-						{
-							angle = optionObject["angle"].toInt();
-						}
-
-						if (optionObject.find("gain") != optionObject.end())
-						{
-							gain = optionObject["gain"].toDouble();
-						}
-
-						if (optionObject.find("speed") != optionObject.end())
-						{
-							speed = optionObject["speed"].toInt();
-
-							for (int i = 0; i < numMotors; i++)
-							{
-								motor.setSpeed(i, speed);
-							}
-						}
+						// change options for motions
 					}
 
-
-					motionTriggers.assign(numMotors, -1);
 					motionTimer->start();
 				}
 				else
@@ -391,14 +413,8 @@ void Dialog::initialize()
 					buttonStart->setText("3. Start");
 
 					QJsonObject optionObject = motionOptions["default"];
-					angle = optionObject["angle"].toInt();
-					gain = optionObject["gain"].toDouble();
-					speed = optionObject["speed"].toInt();
 
-					for (int i = 0; i < numMotors; i++)
-					{
-						motor.setSpeed(i, speed);
-					}
+					// recover options
 				}
 			});
 
@@ -433,44 +449,14 @@ void Dialog::initialize()
 
 	QMenu* menuAction = new QMenu("Action");
 	{
-		QAction* actionRepair = new QAction("Repair");
-		actionRepair->setCheckable(true);
-		connect(actionRepair, &QAction::triggered, [this, actionRepair](bool checked)
+		QAction* actionPowerOff = new QAction("Power Off");
+
+		connect(actionPowerOff, &QAction::triggered, [this]()
 		{
-			if (checked)
-			{
-				auto buttonMotorStart = findChild<QPushButton*>("buttonMotorStart");
-				if (buttonMotorStart->isChecked())
-				{
-					actionRepair->setChecked(false);
-					return;
-				}
-
-				for (int i = 0; i < numMotors; i++)
-				{
-					motor.setCycle(i, limit * sign, 3);
-					motor.trigger(i, 3);
-				}
-			}
-			else
-			{
-				motor.stop();
-				Sleep(100);
-
-				for (int i = 0; i < numMotors;)
-				{
-					int pos = 0;
-
-					motor.position(i, pos);
-					motor.setCycle(i, -pos, 3);
-					motor.trigger(i, 3);
-
-					i++;
-				}
-			}
+			motor.power(false);
 		});
 
-		menuAction->addAction(actionRepair);
+		menuAction->addAction(actionPowerOff);
 		menu->addMenu(menuAction);
 	}
 
@@ -542,7 +528,6 @@ bool Dialog::loadOption()
 				if (defaultOptionList.contains("angle") &&
 					defaultOptionList.contains("baudRate") &&
 					defaultOptionList.contains("center") &&
-					defaultOptionList.contains("gain") &&
 					defaultOptionList.contains("limit") &&
 					defaultOptionList.contains("numMotors") &&
 					defaultOptionList.contains("port") &&
@@ -552,7 +537,6 @@ bool Dialog::loadOption()
 					angle = defaultOption["angle"].toInt();
 					baudRate = defaultOption["baudRate"].toInt();
 					center = defaultOption["center"].toInt();
-					gain = defaultOption["gain"].toDouble();
 					limit = defaultOption["limit"].toInt();
 					numMotors = defaultOption["numMotors"].toInt();
 					portNames = defaultOption["port"].toString();

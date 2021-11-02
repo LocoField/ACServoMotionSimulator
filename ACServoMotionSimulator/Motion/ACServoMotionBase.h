@@ -4,15 +4,15 @@
 
 #include <math.h>
 
-struct Vector3
+struct Motion
 {
-	float x = 0;
-	float y = 0;
-	float z = 0;
-};
+	float roll = 0;
+	float pitch = 0;
+	float heave = 0;
+	float yaw = 0;
+	float sway = 0;
+	float surge = 0;
 
-struct Vector4
-{
 	float ll = 0;
 	float lr = 0;
 	float rl = 0;
@@ -28,8 +28,7 @@ public:
 public:
 	virtual char* getMotionName() abstract;
 
-	virtual void angle(Vector3& angle) { angle = angle_; }
-	virtual void axis(Vector4& axis) { axis = axis_; }
+	virtual void motion(Motion& motion) { motion = motion_; }
 
 	virtual bool start() { return true; }
 	virtual void stop() {}
@@ -37,7 +36,6 @@ public:
 	virtual bool process(void* arg) abstract;
 
 protected:
-	Vector3 angle_; // roll pitch yaw
-	Vector4 axis_; // axis
+	Motion motion_;
 
 };

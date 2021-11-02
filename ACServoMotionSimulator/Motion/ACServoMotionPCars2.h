@@ -23,6 +23,6 @@ protected:
 	PCars2Data* pDataLocal = nullptr;
 
 	bool suspensionInitialized = false;
-	float suspensionCenter[4];
+	float suspensionCenter[4] = { 0, };
 
 };

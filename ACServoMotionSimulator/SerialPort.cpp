@@ -52,8 +52,25 @@ bool SerialPort::isConnected()
 
 qint64 SerialPort::write(const std::vector<unsigned char>& data)
 {
-	clear(Input);
-	return __super::write({ (char*)data.data(), (int)data.size() });
+#ifdef _DEBUG
+	QString command;
+
+	for (auto it = data.cbegin(); it != data.cend(); ++it)
+	{
+		unsigned char hex = *it;
+		QString hex_format = QString(" %1").arg(hex, 2, 16, QLatin1Char('0'));
+
+		command.append(hex_format);
+	}
+
+	cout << "-->" << command.toStdString() << endl;
+#endif
+
+	auto sent = __super::write({ (char*)data.data(), (int)data.size() });
+
+	waitForBytesWritten();
+
+	return sent;
 }
 
 std::vector<unsigned char> SerialPort::read(int timeout)
@@ -90,6 +107,20 @@ std::vector<unsigned char> SerialPort::writeAndRead(const std::vector<unsigned c
 
 		break;
 	}
+
+#ifdef _DEBUG
+	QString command;
+
+	for (auto it = received.cbegin(); it != received.cend(); ++it)
+	{
+		unsigned char hex = *it;
+		QString hex_format = QString(" %1").arg(hex, 2, 16, QLatin1Char('0'));
+
+		command.append(hex_format);
+	}
+
+	cout << "<--" << command.toStdString() << endl;
+#endif
 
 	return received;
 }

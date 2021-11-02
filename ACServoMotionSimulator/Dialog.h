@@ -32,7 +32,6 @@ private:
 
 	QTimer* motionTimer;
 
-	std::vector<int> motionTriggers;
 	std::vector<int> currentPositions;
 
 	std::vector<ACServoMotionBase*> motionSources;
@@ -46,7 +45,6 @@ private:
 	int height = 1000;
 	int baudRate = 115200;
 	int center = 0;
-	double gain = 1;
 	int limit = 0;
 	int numMotors = 0;
 	QString portNames;

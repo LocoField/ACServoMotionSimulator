@@ -101,8 +101,8 @@ bool ACServoMotionXPlane11::process(void* arg)
 	angleFilter(roll, 15);
 	angleFilter(pitch, 15);
 
-	angle_.x = roll;
-	angle_.y = pitch;
+	motion_.roll = roll;
+	motion_.pitch = pitch;
 
 	return true;
 }

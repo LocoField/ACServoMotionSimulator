@@ -131,6 +131,15 @@ bool ACServoMotorSerial::setCycle(int device, int cycle, unsigned char index)
 	return true;
 }
 
+bool ACServoMotorSerial::setSpeed(int device, unsigned short speed, unsigned char index)
+{
+	if (device < 0 || motors_.size() <= device) return false;
+
+	motors_[device]->writeAndRead(ACServoMotorHelper::setSpeed(device, speed, index));
+
+	return true;
+}
+
 bool ACServoMotorSerial::setSpeed(int device, unsigned short speed)
 {
 	if (device < 0 || motors_.size() <= device) return false;

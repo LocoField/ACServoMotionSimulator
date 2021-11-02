@@ -1,5 +1,7 @@
 #include "ACServoMotionKeyboard.h"
 
+constexpr int angle = 15;
+
 char* ACServoMotionKeyboard::getMotionName()
 {
 	return "Keyboard";
@@ -7,8 +9,8 @@ char* ACServoMotionKeyboard::getMotionName()
 
 bool ACServoMotionKeyboard::process(void* arg)
 {
-	angle_.x = rollMoved;
-	angle_.y = pitchMoved;
+	motion_.roll = rollMoved;
+	motion_.pitch = pitchMoved;
 
 	return true;
 }
@@ -38,28 +40,28 @@ bool ACServoMotionKeyboard::eventFilter(QObject* object, QEvent* event)
 				case Qt::Key_Left:
 				{
 					if (rollMoved == 0)
-						rollMoved = -1;
+						rollMoved = -angle;
 
 					break;
 				}
 				case Qt::Key_Right:
 				{
 					if (rollMoved == 0)
-						rollMoved = 1;
+						rollMoved = angle;
 
 					break;
 				}
 				case Qt::Key_Up:
 				{
 					if (pitchMoved == 0)
-						pitchMoved = -1;
+						pitchMoved = -angle;
 
 					break;
 				}
 				case Qt::Key_Down:
 				{
 					if (pitchMoved == 0)
-						pitchMoved = 1;
+						pitchMoved = angle;
 
 					break;
 				}
@@ -79,28 +81,28 @@ bool ACServoMotionKeyboard::eventFilter(QObject* object, QEvent* event)
 				}
 				case Qt::Key_Left:
 				{
-					if (rollMoved == -1)
+					if (rollMoved == -angle)
 						rollMoved = 0;
 
 					break;
 				}
 				case Qt::Key_Right:
 				{
-					if (rollMoved == 1)
+					if (rollMoved == angle)
 						rollMoved = 0;
 
 					break;
 				}
 				case Qt::Key_Up:
 				{
-					if (pitchMoved == -1)
+					if (pitchMoved == -angle)
 						pitchMoved = 0;
 
 					break;
 				}
 				case Qt::Key_Down:
 				{
-					if (pitchMoved == 1)
+					if (pitchMoved == angle)
 						pitchMoved = 0;
 
 					break;

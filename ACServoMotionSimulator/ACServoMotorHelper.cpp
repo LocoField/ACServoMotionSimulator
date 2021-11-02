@@ -169,12 +169,28 @@ Command ACServoMotorHelper::setCycle(int address, int cycle, unsigned char index
 	return data;
 }
 
+Command ACServoMotorHelper::setSpeed(int address, unsigned short speed, unsigned char index)
+{
+	if (speed < 0 || 3000 < speed) return Command();
+
+	Command data;
+	data.reserve(8);
+
+	data.insert(data.end(), {
+		(unsigned char)(address + 1), 0x06, 0x00, (unsigned char)(128 + index),
+		(unsigned char)((speed >> 8) & 0xFF), (unsigned char)(speed & 0xFF),
+	});
+
+	calculateCRC(data);
+	return data;
+}
+
 Command ACServoMotorHelper::setSpeed(int address, unsigned short speed)
 {
 	if (speed < 0 || 3000 < speed) return Command();
 
 	Command data;
-	data.reserve(15);
+	data.reserve(17);
 
 	data.insert(data.end(), {
 		(unsigned char)(address + 1), 0x10, 0x00, 128, 0x00, 0x04, 0x08,

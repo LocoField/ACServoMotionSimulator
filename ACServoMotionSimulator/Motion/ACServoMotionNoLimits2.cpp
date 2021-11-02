@@ -219,9 +219,8 @@ bool ACServoMotionNoLimits2::process(void* arg)
 		}
 	}
 
-	angle_.x = psi * 180 / M_PI;
-	angle_.y = theta * 180 / M_PI;
-	angle_.z = phi * 180 / M_PI;
+	motion_.roll = (float)(psi * 180 / M_PI);
+	motion_.pitch = (float)(phi * 180 / M_PI);
 
 	return true;
 }
