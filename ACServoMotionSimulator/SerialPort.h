@@ -1,32 +1,33 @@
 #pragma once
 
-#include <QtSerialPort/QSerialPort>
+#include "serial.h"
 
-class SerialPort : protected QSerialPort
+#include <functional>
+
+class SerialPort
 {
 public:
-	SerialPort();
+	SerialPort() = default;
 	~SerialPort() = default;
-
-public:
-	static void availablePorts(std::vector<QString>& ports);
 
 protected:
 	virtual int checkCompleteData(const std::vector<unsigned char>& data) { return 0; }
 
 public:
-	bool connect(QString portName, int baudRate, QSerialPort::Parity parity, QSerialPort::StopBits stopBits);
+	bool connect(const std::string& port, int baudRate, int byteSize, int parity, int stopBits);
 	void disconnect();
 	bool isConnected();
 
 	void setDisconnectedCallback(std::function<void()> callback);
 
-	qint64 write(const std::vector<unsigned char>& data);
-	std::vector<unsigned char> read(int timeout = 2000);
-	std::vector<unsigned char> writeAndRead(const std::vector<unsigned char>& data, int timeout = 2000);
+	virtual size_t write(const std::vector<unsigned char>& data);
+	virtual std::vector<unsigned char> read();
+	virtual std::vector<unsigned char> writeAndRead(const std::vector<unsigned char>& data);
 
-private:
+protected:
 	std::function<void()> disconnectedCallback;
+
+	serial::Serial serial;
 
 };
 

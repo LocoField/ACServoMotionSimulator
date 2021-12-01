@@ -57,14 +57,14 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\_packages\dependencies\qt5-5.9.3\include;..\..\USBPcapHelper\bin</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\serial\include;C:\_packages\dependencies\qt5-5.9.3\include;..\..\USBPcapHelper\bin</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>seriald.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
-      <AdditionalLibraryDirectories>C:\_packages\dependencies\qt5-5.9.3\lib;..\..\USBPcapHelper\bin</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>.\serial\lib;C:\_packages\dependencies\qt5-5.9.3\lib;..\..\USBPcapHelper\bin</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -75,15 +75,15 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\_packages\dependencies\qt5-5.9.3\include;..\..\USBPcapHelper\bin</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\serial\include;C:\_packages\dependencies\qt5-5.9.3\include;..\..\USBPcapHelper\bin</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\_packages\dependencies\qt5-5.9.3\lib;..\..\USBPcapHelper\bin</AdditionalLibraryDirectories>
+      <AdditionalDependencies>serial.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>.\serial\lib;C:\_packages\dependencies\qt5-5.9.3\lib;..\..\USBPcapHelper\bin</AdditionalLibraryDirectories>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
     </Link>
   </ItemDefinitionGroup>

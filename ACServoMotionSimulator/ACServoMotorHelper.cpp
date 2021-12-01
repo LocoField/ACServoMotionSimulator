@@ -32,11 +32,13 @@ void ACServoMotorHelper::calculateCRC(Command& data)
 
 int ACServoMotorHelper::getDataLength(const Command& data)
 {
-	// ASCII: start(1) + address(2) + command(2) + data(?) + LRC(2) + CRLF(2) = 9
-	// RTU: address(1) + command(1) + data(?) + CRC(2) = 4
+	// ASCII: start(1) + address(2) + command(2) + data(?) + LRC(2) + CRLF(2) = 5 + ? + 4
+	// RTU: address(1) + command(1) + data(?) + CRC(2) = 2 + ? + 2
 
-	const unsigned char minimumLength = 4;
-	if (data.size() < minimumLength)
+	const size_t prefixLength = 2;
+	const size_t postfixLength = 2;
+
+	if (data.size() < prefixLength)
 		return -1;
 
 	unsigned char command = data[1];
@@ -44,13 +46,17 @@ int ACServoMotorHelper::getDataLength(const Command& data)
 
 	switch (command)
 	{
-		case 0x03:
+		case 0x03: // read multiple
 		{
-			dataSize = data[2] + 1;
+			if (data.size() == 8) // send data
+				dataSize = (data[4] * 16 + data[5]) * 2 + 1;
+			else
+				dataSize = data[2] + 1;
+
 			break;
 		}
-		case 0x06:
-		case 0x10:
+		case 0x06: // write single
+		case 0x10: // write multiple
 		{
 			dataSize = 4;
 			break;
@@ -61,7 +67,7 @@ int ACServoMotorHelper::getDataLength(const Command& data)
 		}
 	}
 
-	return minimumLength + dataSize;
+	return prefixLength + dataSize + postfixLength;
 }
 
 bool ACServoMotorHelper::getParamValue(const Command& data, short& value)
@@ -114,7 +120,7 @@ Command ACServoMotorHelper::readParam(int address, unsigned char param)
 	data.reserve(8);
 
 	data.insert(data.end(), {
-		(unsigned char)(address + 1), 0x03, 0x00, param, 0x00, 0x01,
+		(unsigned char)address, 0x03, 0x00, param, 0x00, 0x01,
 	});
 
 	calculateCRC(data);
@@ -129,7 +135,7 @@ Command ACServoMotorHelper::readCycles(int address, unsigned char index)
 	data.reserve(8);
 
 	data.insert(data.end(), {
-		(unsigned char)(address + 1), 0x03, 0x00, (unsigned char)(120 + index * 2), 0x00, 0x02,
+		(unsigned char)address, 0x03, 0x00, (unsigned char)(120 + index * 2), 0x00, 0x02,
 	}); // Pn120 and Pn121 ~
 
 	calculateCRC(data);
@@ -142,8 +148,24 @@ Command ACServoMotorHelper::readEncoder(int address)
 	data.reserve(8);
 	
 	data.insert(data.end(), {
-		(unsigned char)(address + 1), 0x03, 0x01, 0x82, 0x00, 0x03,
+		(unsigned char)address, 0x03, 0x01, 0x82, 0x00, 0x03,
 	}); // Dn018 to Dn020
+
+	calculateCRC(data);
+	return data;
+}
+
+Command ACServoMotorHelper::setParam(int address, unsigned char param, short value)
+{
+	if (235 < param) return Command();
+
+	Command data;
+	data.reserve(8);
+
+	data.insert(data.end(), {
+		(unsigned char)address, 0x06, 0x00, param,
+		(unsigned char)((value >> 8) & 0xFF), (unsigned char)(value & 0xFF),
+	});
 
 	calculateCRC(data);
 	return data;
@@ -160,7 +182,7 @@ Command ACServoMotorHelper::setCycle(int address, int cycle, unsigned char index
 	short low = cycle % 10000;
 
 	data.insert(data.end(), {
-		(unsigned char)(address + 1), 0x10, 0x00, (unsigned char)(120 + index * 2), 0x00, 0x02, 0x04,
+		(unsigned char)address, 0x10, 0x00, (unsigned char)(120 + index * 2), 0x00, 0x02, 0x04,
 		(unsigned char)((high >> 8) & 0xFF), (unsigned char)(high & 0xFF),
 		(unsigned char)((low >> 8) & 0xFF), (unsigned char)(low & 0xFF),
 	});
@@ -177,7 +199,7 @@ Command ACServoMotorHelper::setSpeed(int address, unsigned short speed, unsigned
 	data.reserve(8);
 
 	data.insert(data.end(), {
-		(unsigned char)(address + 1), 0x06, 0x00, (unsigned char)(128 + index),
+		(unsigned char)address, 0x06, 0x00, (unsigned char)(128 + index),
 		(unsigned char)((speed >> 8) & 0xFF), (unsigned char)(speed & 0xFF),
 	});
 
@@ -193,7 +215,7 @@ Command ACServoMotorHelper::setSpeed(int address, unsigned short speed)
 	data.reserve(17);
 
 	data.insert(data.end(), {
-		(unsigned char)(address + 1), 0x10, 0x00, 128, 0x00, 0x04, 0x08,
+		(unsigned char)address, 0x10, 0x00, 128, 0x00, 0x04, 0x08,
 		(unsigned char)((speed >> 8) & 0xFF), (unsigned char)(speed & 0xFF),
 		(unsigned char)((speed >> 8) & 0xFF), (unsigned char)(speed & 0xFF),
 		(unsigned char)((speed >> 8) & 0xFF), (unsigned char)(speed & 0xFF),
@@ -215,7 +237,7 @@ Command ACServoMotorHelper::home(int address)
 	data.reserve(8);
 
 	data.insert(data.end(), {
-		(unsigned char)(address + 1), 0x06, 0x00, 71,
+		(unsigned char)address, 0x06, 0x00, 71,
 		(unsigned char)((value >> 8) & 0xFF), (unsigned char)(value & 0xFF),
 	});
 
@@ -234,7 +256,7 @@ Command ACServoMotorHelper::stop(int address)
 	data.reserve(8);
 
 	data.insert(data.end(), {
-		(unsigned char)(address + 1), 0x06, 0x00, 71,
+		(unsigned char)address, 0x06, 0x00, 71,
 		(unsigned char)((value >> 8) & 0xFF), (unsigned char)(value & 0xFF),
 	});
 
@@ -285,7 +307,7 @@ Command ACServoMotorHelper::trigger(int address, unsigned char index)
 	data.reserve(8);
 
 	data.insert(data.end(), {
-		(unsigned char)(address + 1), 0x06, 0x00, 71,
+		(unsigned char)address, 0x06, 0x00, 71,
 		(unsigned char)((value >> 8) & 0xFF), (unsigned char)(value & 0xFF),
 	});
 
@@ -302,7 +324,7 @@ Command ACServoMotorHelper::normal(int address)
 	data.reserve(8);
 
 	data.insert(data.end(), {
-		(unsigned char)(address + 1), 0x06, 0x00, 71,
+		(unsigned char)address, 0x06, 0x00, 71,
 		(unsigned char)((value >> 8) & 0xFF), (unsigned char)(value & 0xFF),
 	});
 
@@ -316,7 +338,7 @@ Command ACServoMotorHelper::emergency(int address, bool on)
 	data.reserve(8);
 
 	data.insert(data.end(), {
-		(unsigned char)(address + 1), 0x06, 0x00, 70, 0x7F,
+		(unsigned char)address, 0x06, 0x00, 70, 0x7F,
 	});
 
 	if (on) data.push_back(0xFF);
@@ -332,7 +354,7 @@ Command ACServoMotorHelper::power(int address, bool on)
 	data.reserve(8);
 
 	data.insert(data.end(), {
-		(unsigned char)(address + 1), 0x06, 0x00, 70, 0x7F,
+		(unsigned char)address, 0x06, 0x00, 70, 0x7F,
 		});
 
 	if (on) data.push_back(0xBE);

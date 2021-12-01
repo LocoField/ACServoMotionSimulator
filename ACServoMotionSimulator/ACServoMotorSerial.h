@@ -2,41 +2,42 @@
 
 #include "SerialPort.h"
 
-class ACServoMotorSerial
+class ACServoMotorSerial : public SerialPort
 {
 public:
-	explicit ACServoMotorSerial();
+	ACServoMotorSerial();
+	ACServoMotorSerial(const ACServoMotorSerial& object);
 	virtual ~ACServoMotorSerial();
 
 protected:
 	virtual int checkCompleteData(const std::vector<unsigned char>& data);
 
 public:
-	bool connect(const QString& portNames, int baudRate, int numMotors);
+	void setAddress(int address);
+	bool connect(const std::string& port, int baudRate);
 	void disconnect();
-	void clear();
 
-	void setDisconnectedCallback(std::function<void()> callback);
+	virtual size_t write(const std::vector<unsigned char>& data);
+	virtual std::vector<unsigned char> writeAndRead(const std::vector<unsigned char>& data);
 
-	bool paramValue(int device, unsigned char param, short& value);
-	bool position(int device, int& pos);
+	bool paramValue(unsigned char param, short& value);
+	bool position(int& pos, bool& moving);
 
-	bool setCycle(int device, int cycle, unsigned char index);
-	bool setSpeed(int device, unsigned short speed, unsigned char index);
-	bool setSpeed(int device, unsigned short speed);
+	bool setCycle(int cycle, unsigned char index);
+	bool setSpeed(unsigned short speed, unsigned char index);
+	bool setSpeed(unsigned short speed);
+	void test(short value);
 
-	bool trigger(int device, unsigned char index);
-	bool normal(int device);
+	void trigger(unsigned char index);
+	void normal();
 
 	void emergency(bool on);
-	bool power(bool on);
-	bool home();
-	bool stop();
-	void wait(int timeout = 2000);
+	void power(bool on);
+	void home();
+	void stop();
 
 protected:
-	std::vector<SerialPort*> motors_;
-	std::function<void()> disconnectedCallback_;
+	int address = 1;
 
 };
 

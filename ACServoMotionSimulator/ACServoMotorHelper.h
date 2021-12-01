@@ -23,6 +23,7 @@ public:
 	static Command readCycles(int address, unsigned char index);
 	static Command readEncoder(int address);
 
+	static Command setParam(int address, unsigned char param, short value);
 	static Command setCycle(int address, int cycle, unsigned char index);
 	static Command setSpeed(int address, unsigned short speed, unsigned char index);
 	static Command setSpeed(int address, unsigned short speed);
