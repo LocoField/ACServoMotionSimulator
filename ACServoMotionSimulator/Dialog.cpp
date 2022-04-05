@@ -190,8 +190,8 @@ void Dialog::initialize()
 			int trigger = motionTriggers[i];
 			if (trigger >= 0)
 			{
-				motor.trigger(i, motionTriggers[i]);
-				motor.normal(i);
+				motors[i].trigger(motionTriggers[i]);
+				motors[i].normal();
 			}
 		}
 
@@ -248,34 +248,34 @@ void Dialog::initialize()
 				}
 			}
 
-			motor.setDisconnectedCallback([buttonMotorConnect]()
-			{
-				buttonMotorConnect->setChecked(false);
-			});
-
 			connect(buttonMotorConnect, &QPushButton::toggled, [this, buttonMotorConnect](bool checked)
 			{
 				if (checked)
 				{
-					bool connect = motor.connect(portNames, baudRate, numMotors);
-
-					if (connect == false)
-					{
-						buttonMotorConnect->setChecked(false);
-
-						return;
-					}
+					bool succeed = true;
+					auto ports = portNames.split(';');
 
 					for (int i = 0; i < numMotors; i++)
 					{
-						motor.setSpeed(i, speed);
+						motors[i].setAddress(i + 1);
+						succeed = motors[i].connect(ports[i].toStdString(), baudRate);
+
+						if (succeed == false)
+						{
+							buttonMotorConnect->setChecked(false);
+							return;
+						}
 					}
+
+					for (int i = 0; i < numMotors; i++)
+						motors[i].setSpeed(speed);
 
 					buttonMotorConnect->setText("Disconnect");
 				}
 				else
 				{
-					motor.disconnect();
+					for (int i = 0; i < numMotors; i++)
+						motors[i].disconnect();
 
 					buttonMotorConnect->setText("1. Connect");
 				}
@@ -290,55 +290,53 @@ void Dialog::initialize()
 
 					updateUI(currentPositions);
 
-					motor.power(true);
-					motor.home();
+					for (int i = 0; i < numMotors; i++)
+					{
+						motors[i].power(true);
+						motors[i].home();
+					}
 
 					Sleep(1000);
 
 					for (int i = 0; i < numMotors; i++)
 					{
-						motor.setCycle(i, center * sign, 0);
+						motors[i].setCycle(center * sign, 0);
 
-						motor.trigger(i, 0);
-						motor.normal(i);
+						motors[i].trigger(0);
+						motors[i].normal();
 					}
-
-					motor.wait();
 
 					for (int i = 0; i < numMotors; i++)
 					{
-						motor.setCycle(i, angle, 0);
-						motor.setCycle(i, -angle, 1);
+						motors[i].setCycle(angle, 0);
+						motors[i].setCycle(-angle, 1);
 					}
 
 					buttonMotorStart->setText("Stop");
 				}
 				else
 				{
-					motor.stop();
-
-					Sleep(1000);
-
 					for (int i = 0; i < numMotors; i++)
 					{
 						int pos = 0;
+						bool moving = true;
 
-						motor.position(i, pos);
+						motors[i].position(pos, moving);
 
-						motor.setCycle(i, -pos, 0);
+						motors[i].setCycle(-pos, 0);
 
-						motor.trigger(i, 0);
-						motor.normal(i);
+						motors[i].trigger(0);
+						motors[i].normal();
 					}
 
-					motor.wait();
-
 					for (int i = 0; i < numMotors; i++)
+					{
+						motors[i].power(false);
+
 						currentPositions[i] = 0;
+					}
 
 					updateUI(currentPositions);
-
-					motor.power(false);
 
 					buttonMotorStart->setText("2. Start");
 				}
@@ -346,7 +344,8 @@ void Dialog::initialize()
 
 			connect(buttonMotorEmergency, &QPushButton::clicked, [this](bool checked)
 			{
-				motor.emergency(checked);
+				for (int i = 0; i < numMotors; i++)
+					motors[i].emergency(checked);
 			});
 
 			auto layout = new QHBoxLayout;
@@ -453,7 +452,8 @@ void Dialog::initialize()
 
 		connect(actionPowerOff, &QAction::triggered, [this]()
 		{
-			motor.power(false);
+			for (int i = 0; i < numMotors; i++)
+				motors[i].power(false);
 		});
 
 		menuAction->addAction(actionPowerOff);
@@ -566,6 +566,8 @@ bool Dialog::loadOption()
 		return false;
 	}
 
+	motors.clear();
+	motors.resize(numMotors);
 	currentPositions.resize(numMotors);
 
 	return true;

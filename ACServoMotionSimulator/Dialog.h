@@ -32,13 +32,12 @@ private:
 
 	QTimer* motionTimer;
 
+	std::vector<ACServoMotorSerial> motors;
 	std::vector<int> currentPositions;
 
 	std::vector<ACServoMotionBase*> motionSources;
 	ACServoMotionBase* motionSource = nullptr;
 	std::map<QString, QJsonObject> motionOptions;
-
-	ACServoMotorSerial motor;
 
 	int angle = 5000; // difference
 	int width = 500;
