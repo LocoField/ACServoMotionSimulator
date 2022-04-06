@@ -114,9 +114,10 @@ void Dialog::motionThread(int index)
 	motionWaiter.wait(locker);
 
 	int trigger = motionTriggers[index];
-	if (trigger > 0)
+	if (trigger >= 0)
 	{
 		motors[index].trigger(motionTriggers[index]);
+		motors[index].normal();
 	}
 }
 
