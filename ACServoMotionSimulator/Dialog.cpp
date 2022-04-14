@@ -107,6 +107,20 @@ Dialog::~Dialog()
 	clearMotionModules();
 }
 
+void Dialog::motionThread(int index)
+{
+	std::shared_lock<std::shared_mutex> locker(motionMutex);
+
+	motionWaiter.wait(locker);
+
+	int trigger = motionTriggers[index];
+	if (trigger >= 0)
+	{
+		motors[index].trigger(motionTriggers[index]);
+		motors[index].normal();
+	}
+}
+
 void Dialog::initialize()
 {
 	motionTimer = new QTimer;
@@ -132,11 +146,9 @@ void Dialog::initialize()
 
 
 		std::vector<int> targetPositions(numMotors, center);
-		std::vector<int> motionTriggers(numMotors, -1);
+		motionTriggers.assign(numMotors, -1);
 
-		if (numMotors != 4)
-			return;
-
+		if (numMotors == 4)
 		{
 			int pz1, pz2, pz3, pz4;
 
@@ -158,6 +170,14 @@ void Dialog::initialize()
 			targetPositions[2] += data.rl * 500;
 			targetPositions[3] += data.rr * 500;
 		}
+
+
+		std::thread t[4];
+
+		for (int i = 0; i < numMotors; i++)
+			t[i] = std::thread(std::bind(&Dialog::motionThread, this, i));
+
+		Sleep(1);
 
 		for (int i = 0; i < numMotors; i++)
 		{
@@ -185,18 +205,12 @@ void Dialog::initialize()
 			}
 		}
 
+		motionWaiter.notify_all();
+
 		for (int i = 0; i < numMotors; i++)
-		{
-			int trigger = motionTriggers[i];
-			if (trigger >= 0)
-			{
-				motors[i].trigger(motionTriggers[i]);
-				motors[i].normal();
-			}
-		}
+			t[i].join();
 
 		updateUI(currentPositions);
-		Sleep(1);
 	});
 
 	auto motorLayout = new QVBoxLayout;
