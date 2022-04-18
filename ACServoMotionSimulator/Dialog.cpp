@@ -189,9 +189,13 @@ void Dialog::initialize()
 			int direction = position > 0 ? 1 : -1;
 			int triggerIndex = direction > 0 ? 0 : 1;
 
+			if (abs(position) < step / 2)
+				continue;
+
 			if (abs(position) < step)
 			{
-				continue;
+				step /= 2;
+				triggerIndex += 2;
 			}
 
 			motionTriggers[i] = triggerIndex;
@@ -282,7 +286,12 @@ void Dialog::initialize()
 					}
 
 					for (int i = 0; i < numMotors; i++)
-						motors[i].setSpeed(speed);
+					{
+						motors[i].setSpeed(speed, 0);
+						motors[i].setSpeed(speed, 1);
+						motors[i].setSpeed(speed / 2, 2);
+						motors[i].setSpeed(speed / 2, 3);
+					}
 
 					buttonMotorConnect->setText("Disconnect");
 				}
@@ -324,6 +333,8 @@ void Dialog::initialize()
 					{
 						motors[i].setCycle(angle, 0);
 						motors[i].setCycle(-angle, 1);
+						motors[i].setCycle(angle / 2, 2);
+						motors[i].setCycle(-angle / 2, 3);
 					}
 
 					buttonMotorStart->setText("Stop");
