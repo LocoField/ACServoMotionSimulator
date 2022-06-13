@@ -19,6 +19,7 @@
     <ClCompile Include="Motion\ACServoMotionXPlane11.cpp">
       <Filter>Motion</Filter>
     </ClCompile>
+    <ClCompile Include="MotionController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ACServoMotorHelper.h" />
@@ -44,6 +45,7 @@
     <ClInclude Include="Motion\ACServoMotionXPlane11.h">
       <Filter>Motion</Filter>
     </ClInclude>
+    <ClInclude Include="MotionController.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Motion">

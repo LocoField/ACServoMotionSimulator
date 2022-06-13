@@ -1,92 +1,13 @@
 #include "stdafx.h"
 #include "Dialog.h"
-#include "ACServoMotorHelper.h"
 
+#include "Motion/ACServoMotionBase.h"
 #include "Motion/ACServoMotionKeyboard.h"
 #include "Motion/ACServoMotionPCars2.h"
 #include "Motion/ACServoMotionNoLimits2.h"
 #include "Motion/ACServoMotionXPlane11.h"
 
-#include <thread>
-
-#define DIALOG_TITLE "LocoField Motion Simulator v2.1"
-
-class PlanePoints
-{
-	struct Point3i
-	{
-		int x;
-		int y;
-		int z;
-	};
-
-public:
-	PlanePoints(int width, int height)
-	{
-		p1.x = -width / 2;
-		p1.y = height / 2;
-		p1.z = 0;
-
-		p2.x = width / 2;
-		p2.y = height / 2;
-		p2.z = 0;
-
-		p3.x = -width / 2;
-		p3.y = -height / 2;
-		p3.z = 0;
-
-		p4.x = width / 2;
-		p4.y = -height / 2;
-		p4.z = 0;
-	}
-
-	void rotate(float roll, float pitch)
-	{
-		float a = -tan(roll * M_PI / 180);
-		float b = tan(pitch * M_PI / 180);
-
-		p1.z = -(a * p1.x + b * p1.y);
-		p2.z = -(a * p2.x + b * p2.y);
-		p3.z = -(a * p3.x + b * p3.y);
-		p4.z = -(a * p4.x + b * p4.y);
-	}
-
-	void translate(float heave, float sway, float surge)
-	{
-		float sway_l = 0, sway_r = 0;
-		float surge_f = 0, surge_b = 0;
-
-		if (sway < 0)
-			sway_l = -sway;
-		else
-			sway_r = sway;
-
-		if (surge < 0)
-			surge_f = -surge;
-		else
-			surge_b = surge;
-
-		p1.z += heave + sway_l + surge_f;
-		p2.z += heave + sway_r + surge_f;
-		p3.z += heave + sway_l + surge_b;
-		p4.z += heave + sway_r + surge_b;
-	}
-
-	void getZPoints(int& pz1, int& pz2, int& pz3, int& pz4)
-	{
-		pz1 = p1.z;
-		pz2 = p2.z;
-		pz3 = p3.z;
-		pz4 = p4.z;
-	}
-
-protected:
-	Point3i p1;
-	Point3i p2;
-	Point3i p3;
-	Point3i p4;
-
-};
+#define DIALOG_TITLE "LocoField Motion Simulator v2.2"
 
 Dialog::Dialog()
 {
@@ -96,29 +17,13 @@ Dialog::Dialog()
 
 	addMotionModules();
 
-	if (retval)
-		updateUI(currentPositions);
-	else
+	if (retval == false)
 		mainWidget->setDisabled(true);
 }
 
 Dialog::~Dialog()
 {
 	clearMotionModules();
-}
-
-void Dialog::motionThread(int index)
-{
-	std::shared_lock<std::shared_mutex> locker(motionMutex);
-
-	motionWaiter.wait(locker);
-
-	int trigger = motionTriggers[index];
-	if (trigger >= 0)
-	{
-		motors[index].trigger(motionTriggers[index]);
-		motors[index].normal();
-	}
 }
 
 void Dialog::initialize()
@@ -144,246 +49,8 @@ void Dialog::initialize()
 			GetTickCount());
 #endif
 
-
-		std::vector<int> targetPositions(numMotors, center);
-		motionTriggers.assign(numMotors, -1);
-
-		if (numMotors == 4)
-		{
-			int pz1, pz2, pz3, pz4;
-
-			PlanePoints pp(width, height);
-			pp.rotate(data.roll, data.pitch);
-			pp.translate(data.heave, data.sway, data.surge);
-			pp.getZPoints(pz1, pz2, pz3, pz4);
-
-			//printf("%d    %d    %d    %d\n\n", pz1, pz2, pz3, pz4);
-
-			// 625 (one rotation 2500 / 4 mm pitch), but ...
-			targetPositions[0] -= pz1 * 500;
-			targetPositions[1] -= pz2 * 500;
-			targetPositions[2] -= pz3 * 500;
-			targetPositions[3] -= pz4 * 500;
-
-			targetPositions[0] += data.ll * 500;
-			targetPositions[1] += data.lr * 500;
-			targetPositions[2] += data.rl * 500;
-			targetPositions[3] += data.rr * 500;
-		}
-
-
-		std::thread t[4];
-
-		for (int i = 0; i < numMotors; i++)
-			t[i] = std::thread(std::bind(&Dialog::motionThread, this, i));
-
-		Sleep(1);
-
-		for (int i = 0; i < numMotors; i++)
-		{
-			if (targetPositions[i] < 0 || targetPositions[i] > limit)
-				continue;
-
-			int step = angle;
-			int position = targetPositions[i] - currentPositions[i];
-			int direction = position > 0 ? 1 : -1;
-			int triggerIndex = direction > 0 ? 0 : 1;
-
-			if (abs(position) < step / 2)
-				continue;
-
-			if (abs(position) < step)
-			{
-				step /= 2;
-				triggerIndex += 2;
-			}
-
-			motionTriggers[i] = triggerIndex;
-			currentPositions[i] += (step * direction);
-
-			if (currentPositions[i] < 0 ||
-				currentPositions[i] >= limit)
-			{
-				motionTriggers[i] = -1;
-				currentPositions[i] -= (step * direction);
-			}
-		}
-
-		motionWaiter.notify_all();
-
-		for (int i = 0; i < numMotors; i++)
-			t[i].join();
-
-		updateUI(currentPositions);
+		motion.executeMotion(data);
 	});
-
-	auto motorLayout = new QVBoxLayout;
-	{
-		auto groupBox = new QGroupBox("Motor");
-		motorLayout->addWidget(groupBox);
-
-		{
-			auto buttonMotorConnect = new QPushButton("1. Connect");
-			buttonMotorConnect->setFocusPolicy(Qt::FocusPolicy::NoFocus);
-			buttonMotorConnect->setCheckable(true);
-			buttonMotorConnect->setFixedWidth(150);
-			buttonMotorConnect->setFixedHeight(100);
-
-			auto buttonMotorStart = new QPushButton("2. Start");
-			buttonMotorStart->setObjectName("buttonMotorStart");
-			buttonMotorStart->setFocusPolicy(Qt::FocusPolicy::NoFocus);
-			buttonMotorStart->setCheckable(true);
-			buttonMotorStart->setFixedWidth(150);
-			buttonMotorStart->setFixedHeight(100);
-
-			auto buttonMotorEmergency = new QPushButton("EMERGENCY");
-			buttonMotorEmergency->setFocusPolicy(Qt::FocusPolicy::NoFocus);
-			buttonMotorEmergency->setCheckable(true);
-			buttonMotorEmergency->setFixedWidth(150);
-			buttonMotorEmergency->setFixedHeight(100);
-			buttonMotorEmergency->setShortcut(Qt::Key_Space);
-
-			auto layoutLabels = new QVBoxLayout;
-			{
-				for (int i = 0; i < numMotors; i++)
-				{
-					auto labelMotorPosition = new QLabel(QString("Motor %1\t: ").arg(i + 1));
-
-					layoutLabels->addWidget(labelMotorPosition);
-				}
-			}
-
-			auto layoutValues = new QVBoxLayout;
-			{
-				for (int i = 0; i < numMotors; i++)
-				{
-					auto valueMotorPosition = new QLabel("0");
-					valueMotorPosition->setObjectName(QString("valueMotorPosition%1").arg(i));
-					valueMotorPosition->setAlignment(Qt::AlignVCenter | Qt::AlignRight);
-					valueMotorPosition->setFixedWidth(100);
-
-					layoutValues->addWidget(valueMotorPosition);
-				}
-			}
-
-			connect(buttonMotorConnect, &QPushButton::toggled, [this, buttonMotorConnect](bool checked)
-			{
-				if (checked)
-				{
-					bool succeed = true;
-					auto ports = portNames.split(';');
-
-					for (int i = 0; i < numMotors; i++)
-					{
-						motors[i].setAddress(i + 1);
-						succeed = motors[i].connect(ports[i].toStdString(), baudRate);
-
-						if (succeed == false)
-						{
-							buttonMotorConnect->setChecked(false);
-							return;
-						}
-					}
-
-					for (int i = 0; i < numMotors; i++)
-					{
-						motors[i].setSpeed(speed, 0);
-						motors[i].setSpeed(speed, 1);
-						motors[i].setSpeed(speed / 2, 2);
-						motors[i].setSpeed(speed / 2, 3);
-					}
-
-					buttonMotorConnect->setText("Disconnect");
-				}
-				else
-				{
-					for (int i = 0; i < numMotors; i++)
-						motors[i].disconnect();
-
-					buttonMotorConnect->setText("1. Connect");
-				}
-			});
-
-			connect(buttonMotorStart, &QPushButton::clicked, [this, buttonMotorStart](bool checked)
-			{
-				if (checked)
-				{
-					for (int i = 0; i < numMotors; i++)
-						currentPositions[i] = center;
-
-					updateUI(currentPositions);
-
-					for (int i = 0; i < numMotors; i++)
-					{
-						motors[i].power(true);
-						motors[i].home();
-					}
-
-					Sleep(1000);
-
-					for (int i = 0; i < numMotors; i++)
-					{
-						motors[i].setCycle(center * sign, 0);
-
-						motors[i].trigger(0);
-						motors[i].normal();
-					}
-
-					for (int i = 0; i < numMotors; i++)
-					{
-						motors[i].setCycle(angle, 0);
-						motors[i].setCycle(-angle, 1);
-						motors[i].setCycle(angle / 2, 2);
-						motors[i].setCycle(-angle / 2, 3);
-					}
-
-					buttonMotorStart->setText("Stop");
-				}
-				else
-				{
-					for (int i = 0; i < numMotors; i++)
-					{
-						int pos = 0;
-						bool moving = true;
-
-						motors[i].position(pos, moving);
-
-						motors[i].setCycle(-pos, 0);
-
-						motors[i].trigger(0);
-						motors[i].normal();
-					}
-
-					for (int i = 0; i < numMotors; i++)
-					{
-						motors[i].power(false);
-
-						currentPositions[i] = 0;
-					}
-
-					updateUI(currentPositions);
-
-					buttonMotorStart->setText("2. Start");
-				}
-			});
-
-			connect(buttonMotorEmergency, &QPushButton::clicked, [this](bool checked)
-			{
-				for (int i = 0; i < numMotors; i++)
-					motors[i].emergency(checked);
-			});
-
-			auto layout = new QHBoxLayout;
-			layout->setAlignment(Qt::AlignLeft);
-			layout->addWidget(buttonMotorConnect);
-			layout->addWidget(buttonMotorStart);
-			layout->addWidget(buttonMotorEmergency);
-			layout->addLayout(layoutLabels);
-			layout->addLayout(layoutValues);
-
-			groupBox->setLayout(layout);
-		}
-	}
 
 	auto controllerLayout = new QVBoxLayout;
 	{
@@ -391,16 +58,79 @@ void Dialog::initialize()
 		controllerLayout->addWidget(groupBox);
 
 		{
+			auto buttonMotorConnect = new QPushButton("Connect");
+			buttonMotorConnect->setFocusPolicy(Qt::FocusPolicy::NoFocus);
+			buttonMotorConnect->setCheckable(true);
+			buttonMotorConnect->setFixedWidth(150);
+			buttonMotorConnect->setFixedHeight(100);
+
+			auto buttonMotorStart = new QPushButton("Start");
+			buttonMotorStart->setFocusPolicy(Qt::FocusPolicy::NoFocus);
+			buttonMotorStart->setCheckable(true);
+			buttonMotorStart->setFixedWidth(150);
+			buttonMotorStart->setFixedHeight(100);
+
+			connect(buttonMotorConnect, &QPushButton::toggled, [this, buttonMotorConnect](bool checked)
+			{
+				if (checked)
+				{
+					if (motion.connect(portNames.toStdString(), baudRate) == false)
+					{
+						buttonMotorConnect->setChecked(false);
+						return;
+					}
+
+					buttonMotorConnect->setText("Disconnect");
+				}
+				else
+				{
+					motion.disconnect();
+
+					buttonMotorConnect->setText("Connect");
+				}
+			});
+
+			connect(buttonMotorStart, &QPushButton::clicked, [this, buttonMotorStart](bool checked)
+			{
+				if (checked)
+				{
+					motion.start();
+
+					buttonMotorStart->setText("Stop");
+				}
+				else
+				{
+					motion.stop();
+
+					buttonMotorStart->setText("Start");
+				}
+			});
+
+			auto layout = new QHBoxLayout;
+			layout->setAlignment(Qt::AlignLeft);
+			layout->addWidget(buttonMotorConnect);
+			layout->addWidget(buttonMotorStart);
+
+			groupBox->setLayout(layout);
+		}
+	}
+
+	auto motionLayout = new QVBoxLayout;
+	{
+		auto groupBox = new QGroupBox("Motion");
+		motionLayout->addWidget(groupBox);
+
+		{
 			auto listMotionSource = new QListWidget;
 			listMotionSource->setObjectName("listMotionSource");
-			listMotionSource->setFixedWidth(200);
-			listMotionSource->setFixedHeight(100);
+			listMotionSource->setFixedWidth(300);
+			listMotionSource->setFixedHeight(120);
 
-			auto buttonStart = new QPushButton("3. Start");
+			auto buttonStart = new QPushButton("Start");
 			buttonStart->setFocusPolicy(Qt::FocusPolicy::NoFocus);
 			buttonStart->setCheckable(true);
-			buttonStart->setFixedWidth(100);
-			buttonStart->setFixedHeight(100);
+			buttonStart->setFixedWidth(150);
+			buttonStart->setFixedHeight(120);
 
 			connect(buttonStart, &QPushButton::toggled, [this, listMotionSource, buttonStart](bool checked)
 			{
@@ -434,7 +164,7 @@ void Dialog::initialize()
 
 
 					listMotionSource->setEnabled(true);
-					buttonStart->setText("3. Start");
+					buttonStart->setText("Start");
 
 					QJsonObject optionObject = motionOptions["default"];
 
@@ -452,8 +182,8 @@ void Dialog::initialize()
 	}
 
 	auto mainLayout = new QVBoxLayout;
-	mainLayout->addLayout(motorLayout);
 	mainLayout->addLayout(controllerLayout);
+	mainLayout->addLayout(motionLayout);
 
 	mainWidget = new QWidget;
 	mainWidget->setLayout(mainLayout);
@@ -461,8 +191,6 @@ void Dialog::initialize()
 	mainLayout = new QVBoxLayout(this);
 	mainLayout->addWidget(mainWidget);
 
-
-	setMinimumWidth(600);
 
 	setWindowTitle(DIALOG_TITLE);
 	setWindowFlag(Qt::WindowMinimizeButtonHint);
@@ -477,8 +205,7 @@ void Dialog::initialize()
 
 		connect(actionPowerOff, &QAction::triggered, [this]()
 		{
-			for (int i = 0; i < numMotors; i++)
-				motors[i].power(false);
+			motion.power(false);
 		});
 
 		menuAction->addAction(actionPowerOff);
@@ -508,17 +235,18 @@ void Dialog::initialize()
 	}
 }
 
-void Dialog::updateUI(const std::vector<int>& positions)
-{
-	for (int i = 0; i < numMotors; i++)
-	{
-		auto valueMotorPosition = findChild<QLabel*>(QString("valueMotorPosition%1").arg(i));
-		valueMotorPosition->setText(QString::number(positions[i]));
-	}
-}
-
 bool Dialog::loadOption()
 {
+	int baudRate = 115200;
+	int width = 500;
+	int height = 1000;
+	int center = 0;
+	int limit = 0;
+	int sign = 1; // 1 or -1
+	int speed = 1000; // rpm
+	int step = 5000;
+
+
 	bool retval = true;
 
 	QString filepath = QCoreApplication::applicationDirPath();
@@ -550,23 +278,27 @@ bool Dialog::loadOption()
 				QJsonObject defaultOption = optionObject["default"].toObject();
 				auto defaultOptionList = defaultOption.keys();
 
-				if (defaultOptionList.contains("angle") &&
-					defaultOptionList.contains("baudRate") &&
+				if (defaultOptionList.contains("width") &&
+					defaultOptionList.contains("height") &&
 					defaultOptionList.contains("center") &&
 					defaultOptionList.contains("limit") &&
-					defaultOptionList.contains("numMotors") &&
-					defaultOptionList.contains("port") &&
+					defaultOptionList.contains("ports") &&
 					defaultOptionList.contains("sign") &&
-					defaultOptionList.contains("speed"))
+					defaultOptionList.contains("speed") &&
+					defaultOptionList.contains("step"))
 				{
-					angle = defaultOption["angle"].toInt();
-					baudRate = defaultOption["baudRate"].toInt();
+					auto itBaudRate = defaultOption.find("baudRate");
+					if (itBaudRate != defaultOption.end())
+						baudRate = itBaudRate->toInt();
+
+					width = defaultOption["width"].toInt();
+					height = defaultOption["height"].toInt();
 					center = defaultOption["center"].toInt();
 					limit = defaultOption["limit"].toInt();
-					numMotors = defaultOption["numMotors"].toInt();
-					portNames = defaultOption["port"].toString();
+					portNames = defaultOption["ports"].toString();
 					sign = defaultOption["sign"].toInt();
 					speed = defaultOption["speed"].toInt();
+					step = defaultOption["step"].toInt();
 				}
 				else
 				{
@@ -591,9 +323,12 @@ bool Dialog::loadOption()
 		return false;
 	}
 
-	motors.clear();
-	motors.resize(numMotors);
-	currentPositions.resize(numMotors);
+	motion.setMotionSize(width, height);
+	motion.setCenterPosition(center);
+	motion.setLimitPosition(limit);
+	motion.setReverseDirection(sign < 0);
+	motion.setSpeedValue(speed);
+	motion.setStepValue(step);
 
 	return true;
 }
