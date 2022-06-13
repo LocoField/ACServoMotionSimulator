@@ -1,4 +1,4 @@
-#include "ACServoMotionPCars2.h"
+#include "MotionPCars2.h"
 
 #include <stdio.h>
 #include <Windows.h>
@@ -7,12 +7,12 @@
 
 const char* MAP_OBJECT_NAME = "$pcars2$";
 
-char* ACServoMotionPCars2::getMotionName()
+char* MotionPCars2::getMotionName()
 {
 	return "Project Cars 2";
 }
 
-bool ACServoMotionPCars2::start()
+bool MotionPCars2::start()
 {
 	if (pDataLocal != nullptr)
 		return true;
@@ -51,14 +51,14 @@ bool ACServoMotionPCars2::start()
 	return true;
 }
 
-void ACServoMotionPCars2::stop()
+void MotionPCars2::stop()
 {
 	if (hFileMapping != nullptr) CloseHandle(hFileMapping);
 	if (pDataMapped != nullptr) UnmapViewOfFile(pDataMapped);
 	if (pDataLocal != nullptr) SAFE_DELETE(pDataLocal);
 }
 
-bool ACServoMotionPCars2::process(void* arg)
+bool MotionPCars2::process(void* arg)
 {
 	if (pDataMapped == nullptr)
 		return false;

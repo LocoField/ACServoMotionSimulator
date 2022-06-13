@@ -1,13 +1,13 @@
 #pragma once
 
-#include "ACServoMotionBase.h"
+#include "MotionBase.h"
 #include "PCars2Data.h"
 
-class ACServoMotionPCars2 : public ACServoMotionBase
+class MotionPCars2 : public MotionBase
 {
 public:
-	ACServoMotionPCars2() = default;
-	virtual ~ACServoMotionPCars2() = default;
+	MotionPCars2() = default;
+	virtual ~MotionPCars2() = default;
 
 public:
 	virtual char* getMotionName() override;

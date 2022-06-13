@@ -2,7 +2,7 @@
 #include "MotionController.h"
 #include "ACServoMotorSerial.h"
 
-#include "Motion/ACServoMotionBase.h"
+#include "Motion/MotionBase.h"
 
 class PlanePoints
 {

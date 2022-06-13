@@ -1,13 +1,13 @@
-#include "ACServoMotionKeyboard.h"
+#include "MotionKeyboard.h"
 
 constexpr int angle = 15;
 
-char* ACServoMotionKeyboard::getMotionName()
+char* MotionKeyboard::getMotionName()
 {
 	return "Keyboard";
 }
 
-bool ACServoMotionKeyboard::process(void* arg)
+bool MotionKeyboard::process(void* arg)
 {
 	motion_.roll = rollMoved;
 	motion_.pitch = pitchMoved;
@@ -15,7 +15,7 @@ bool ACServoMotionKeyboard::process(void* arg)
 	return true;
 }
 
-bool ACServoMotionKeyboard::eventFilter(QObject* object, QEvent* event)
+bool MotionKeyboard::eventFilter(QObject* object, QEvent* event)
 {
 	QKeyEvent* keyEvent = dynamic_cast<QKeyEvent*>(event);
 	if (keyEvent)

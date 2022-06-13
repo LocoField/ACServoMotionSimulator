@@ -6,7 +6,7 @@
 
 class QVBoxLayout;
 class QTimer;
-class ACServoMotionBase;
+class MotionBase;
 
 class Dialog : public QDialog
 {
@@ -33,8 +33,8 @@ private:
 	QString portNames;
 	int baudRate = 115200;
 
-	std::vector<ACServoMotionBase*> motionSources;
-	ACServoMotionBase* motionSource = nullptr;
+	std::vector<MotionBase*> motionSources;
+	MotionBase* motionSource = nullptr;
 	std::map<QString, QJsonObject> motionOptions;
 
 };

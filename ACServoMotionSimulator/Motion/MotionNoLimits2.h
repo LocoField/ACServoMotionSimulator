@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ACServoMotionBase.h"
+#include "MotionBase.h"
 
 #pragma pack(push, 1)
 struct Message
@@ -34,11 +34,11 @@ struct TelemetryData
 };
 #pragma pack(pop)
 
-class ACServoMotionNoLimits2 : public ACServoMotionBase
+class MotionNoLimits2 : public MotionBase
 {
 public:
-	ACServoMotionNoLimits2();
-	virtual ~ACServoMotionNoLimits2() = default;
+	MotionNoLimits2();
+	virtual ~MotionNoLimits2() = default;
 
 public:
 	virtual char* getMotionName() override;

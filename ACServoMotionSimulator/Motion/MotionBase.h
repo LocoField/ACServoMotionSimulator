@@ -19,11 +19,11 @@ struct Motion
 	float rr = 0;
 };
 
-class ACServoMotionBase
+class MotionBase
 {
 public:
-	ACServoMotionBase() = default;
-	virtual ~ACServoMotionBase() = default;
+	MotionBase() = default;
+	virtual ~MotionBase() = default;
 
 public:
 	virtual char* getMotionName() abstract;

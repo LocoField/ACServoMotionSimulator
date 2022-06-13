@@ -1,11 +1,11 @@
 #include "stdafx.h"
 #include "Dialog.h"
 
-#include "Motion/ACServoMotionBase.h"
-#include "Motion/ACServoMotionKeyboard.h"
-#include "Motion/ACServoMotionPCars2.h"
-#include "Motion/ACServoMotionNoLimits2.h"
-#include "Motion/ACServoMotionXPlane11.h"
+#include "Motion/MotionBase.h"
+#include "Motion/MotionKeyboard.h"
+#include "Motion/MotionPCars2.h"
+#include "Motion/MotionNoLimits2.h"
+#include "Motion/MotionXPlane11.h"
 
 #define DIALOG_TITLE "LocoField Motion Simulator v2.2"
 
@@ -337,7 +337,7 @@ void Dialog::addMotionModules()
 {
 	auto listMotionSource = findChild<QListWidget*>("listMotionSource");
 
-	auto addModule = [this, listMotionSource](ACServoMotionBase* motion)
+	auto addModule = [this, listMotionSource](MotionBase* motion)
 	{
 		listMotionSource->addItem(motion->getMotionName());
 
@@ -345,24 +345,24 @@ void Dialog::addMotionModules()
 	};
 
 	// default module
-	ACServoMotionKeyboard* motionKeyboard = new ACServoMotionKeyboard;
+	MotionKeyboard* motionKeyboard = new MotionKeyboard;
 	{
 		installEventFilter(motionKeyboard); // for receiving QKeyEvent
 
 		addModule(motionKeyboard);
 	}
 
-	ACServoMotionPCars2* motionPCars2 = new ACServoMotionPCars2;
+	MotionPCars2* motionPCars2 = new MotionPCars2;
 	{
 		addModule(motionPCars2);
 	}
 
-	ACServoMotionNoLimits2* motionNoLimits2 = new ACServoMotionNoLimits2;
+	MotionNoLimits2* motionNoLimits2 = new MotionNoLimits2;
 	{
 		addModule(motionNoLimits2);
 	}
 
-	ACServoMotionXPlane11* motionXPlane11 = new ACServoMotionXPlane11;
+	MotionXPlane11* motionXPlane11 = new MotionXPlane11;
 	{
 		addModule(motionXPlane11);
 	}
