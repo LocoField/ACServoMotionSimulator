@@ -7,18 +7,19 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SerialPort.cpp" />
     <ClCompile Include="stdafx.cpp" />
-    <ClCompile Include="Motion\ACServoMotionKeyboard.cpp">
+    <ClCompile Include="Motion\MotionKeyboard.cpp">
       <Filter>Motion</Filter>
     </ClCompile>
-    <ClCompile Include="Motion\ACServoMotionPCars2.cpp">
+    <ClCompile Include="Motion\MotionPCars2.cpp">
       <Filter>Motion</Filter>
     </ClCompile>
-    <ClCompile Include="Motion\ACServoMotionNoLimits2.cpp">
+    <ClCompile Include="Motion\MotionNoLimits2.cpp">
       <Filter>Motion</Filter>
     </ClCompile>
-    <ClCompile Include="Motion\ACServoMotionXPlane11.cpp">
+    <ClCompile Include="Motion\MotionXPlane11.cpp">
       <Filter>Motion</Filter>
     </ClCompile>
+    <ClCompile Include="MotionController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ACServoMotorHelper.h" />
@@ -26,24 +27,25 @@
     <ClInclude Include="Dialog.h" />
     <ClInclude Include="SerialPort.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="Motion\ACServoMotionBase.h">
+    <ClInclude Include="Motion\MotionBase.h">
       <Filter>Motion</Filter>
     </ClInclude>
-    <ClInclude Include="Motion\ACServoMotionKeyboard.h">
+    <ClInclude Include="Motion\MotionKeyboard.h">
       <Filter>Motion</Filter>
     </ClInclude>
-    <ClInclude Include="Motion\ACServoMotionPCars2.h">
+    <ClInclude Include="Motion\MotionPCars2.h">
       <Filter>Motion</Filter>
     </ClInclude>
     <ClInclude Include="Motion\PCars2Data.h">
       <Filter>Motion</Filter>
     </ClInclude>
-    <ClInclude Include="Motion\ACServoMotionNoLimits2.h">
+    <ClInclude Include="Motion\MotionNoLimits2.h">
       <Filter>Motion</Filter>
     </ClInclude>
-    <ClInclude Include="Motion\ACServoMotionXPlane11.h">
+    <ClInclude Include="Motion\MotionXPlane11.h">
       <Filter>Motion</Filter>
     </ClInclude>
+    <ClInclude Include="MotionController.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Motion">

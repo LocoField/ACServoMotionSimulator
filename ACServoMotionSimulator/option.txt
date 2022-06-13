@@ -1,13 +1,13 @@
 {
     "default":
     {
-        "angle": 5000,
-        "baudRate": 115200,
+        "width": 500,
+        "height": 1000,
         "center": 100000,
         "limit": 250000,
-        "numMotors": 4,
-        "port": "COM21;COM22;COM23;COM24",
+        "ports": "COM21;COM22;COM23;COM24",
         "sign": 1,
-        "speed": 500
+        "speed": 500,
+        "step": 5000
     }
 }

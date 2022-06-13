@@ -1,4 +1,4 @@
-#include "ACServoMotionXPlane11.h"
+#include "MotionXPlane11.h"
 
 #include <stdio.h>
 #include <utility>
@@ -6,7 +6,7 @@
 
 #pragma comment(lib, "Ws2_32.lib")
 
-ACServoMotionXPlane11::ACServoMotionXPlane11()
+MotionXPlane11::MotionXPlane11()
 {
 	sock = INVALID_SOCKET;
 
@@ -14,12 +14,12 @@ ACServoMotionXPlane11::ACServoMotionXPlane11()
 	WSAStartup(MAKEWORD(2, 2), &wsaData);
 }
 
-char* ACServoMotionXPlane11::getMotionName()
+char* MotionXPlane11::getMotionName()
 {
 	return "X-Plane 11";
 }
 
-bool ACServoMotionXPlane11::start()
+bool MotionXPlane11::start()
 {
 	const int sockaddrSize = sizeof(struct sockaddr_in);
 	sockaddr_in serverAddr;
@@ -52,7 +52,7 @@ bool ACServoMotionXPlane11::start()
 	return true;
 }
 
-void ACServoMotionXPlane11::stop()
+void MotionXPlane11::stop()
 {
 	closesocket(sock);
 	sock = INVALID_SOCKET;
@@ -66,7 +66,7 @@ inline void ConvertEndianness(T& in)
 		std::swap(p[i], p[(sizeof(T) - 1) - i]);
 }
 
-bool ACServoMotionXPlane11::process(void* arg)
+bool MotionXPlane11::process(void* arg)
 {
 	char buffer[1000];
 	Data data;

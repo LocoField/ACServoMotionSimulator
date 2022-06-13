@@ -1,4 +1,4 @@
-#include "ACServoMotionNoLimits2.h"
+#include "MotionNoLimits2.h"
 
 #include <stdio.h>
 #include <utility>
@@ -6,7 +6,7 @@
 
 #pragma comment(lib, "Ws2_32.lib")
 
-ACServoMotionNoLimits2::ACServoMotionNoLimits2()
+MotionNoLimits2::MotionNoLimits2()
 {
 	sock = INVALID_SOCKET;
 	last_rendered_frame = 0;
@@ -15,12 +15,12 @@ ACServoMotionNoLimits2::ACServoMotionNoLimits2()
 	WSAStartup(MAKEWORD(2, 2), &wsaData);
 }
 
-char* ACServoMotionNoLimits2::getMotionName()
+char* MotionNoLimits2::getMotionName()
 {
 	return "No Limits 2";
 }
 
-bool ACServoMotionNoLimits2::start()
+bool MotionNoLimits2::start()
 {
 	const int sockaddrSize = sizeof(struct sockaddr_in);
 	sockaddr_in serverAddr;
@@ -92,7 +92,7 @@ bool ACServoMotionNoLimits2::start()
 	return true;
 }
 
-void ACServoMotionNoLimits2::stop()
+void MotionNoLimits2::stop()
 {
 	closesocket(sock);
 	sock = INVALID_SOCKET;
@@ -106,7 +106,7 @@ inline void ConvertEndianness(T& in)
 		std::swap(p[i], p[(sizeof(T) - 1) - i]);
 }
 
-bool ACServoMotionNoLimits2::process(void* arg)
+bool MotionNoLimits2::process(void* arg)
 {
 	if (sock <= 0)
 	{

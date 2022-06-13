@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ACServoMotionBase.h"
+#include "MotionBase.h"
 
 #pragma pack(push, 1)
 struct Data
@@ -13,11 +13,11 @@ struct Data
 };
 #pragma pack(pop)
 
-class ACServoMotionXPlane11 : public ACServoMotionBase
+class MotionXPlane11 : public MotionBase
 {
 public:
-	ACServoMotionXPlane11();
-	virtual ~ACServoMotionXPlane11() = default;
+	MotionXPlane11();
+	virtual ~MotionXPlane11() = default;
 
 public:
 	virtual char* getMotionName() override;

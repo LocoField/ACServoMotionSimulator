@@ -95,19 +95,20 @@
     <ClCompile Include="ACServoMotorSerial.cpp" />
     <ClCompile Include="Dialog.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Motion\ACServoMotionKeyboard.cpp">
+    <ClCompile Include="MotionController.cpp" />
+    <ClCompile Include="Motion\MotionKeyboard.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Motion\ACServoMotionNoLimits2.cpp">
+    <ClCompile Include="Motion\MotionNoLimits2.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Motion\ACServoMotionPCars2.cpp">
+    <ClCompile Include="Motion\MotionPCars2.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Motion\ACServoMotionXPlane11.cpp">
+    <ClCompile Include="Motion\MotionXPlane11.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -121,11 +122,12 @@
     <ClInclude Include="ACServoMotorHelper.h" />
     <ClInclude Include="ACServoMotorSerial.h" />
     <ClInclude Include="Dialog.h" />
-    <ClInclude Include="Motion\ACServoMotionBase.h" />
-    <ClInclude Include="Motion\ACServoMotionKeyboard.h" />
-    <ClInclude Include="Motion\ACServoMotionNoLimits2.h" />
-    <ClInclude Include="Motion\ACServoMotionPCars2.h" />
-    <ClInclude Include="Motion\ACServoMotionXPlane11.h" />
+    <ClInclude Include="MotionController.h" />
+    <ClInclude Include="Motion\MotionBase.h" />
+    <ClInclude Include="Motion\MotionKeyboard.h" />
+    <ClInclude Include="Motion\MotionNoLimits2.h" />
+    <ClInclude Include="Motion\MotionPCars2.h" />
+    <ClInclude Include="Motion\MotionXPlane11.h" />
     <ClInclude Include="Motion\PCars2Data.h" />
     <ClInclude Include="SerialPort.h" />
     <ClInclude Include="stdafx.h" />

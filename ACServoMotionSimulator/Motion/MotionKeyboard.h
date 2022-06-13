@@ -1,15 +1,15 @@
 #pragma once
 
-#include "ACServoMotionBase.h"
+#include "MotionBase.h"
 
 #include <QtCore/QObject>
 #include <QtGui/QKeyEvent>
 
-class ACServoMotionKeyboard : public ACServoMotionBase, public QObject
+class MotionKeyboard : public MotionBase, public QObject
 {
 public:
-	ACServoMotionKeyboard() = default;
-	virtual ~ACServoMotionKeyboard() = default;
+	MotionKeyboard() = default;
+	virtual ~MotionKeyboard() = default;
 
 public:
 	virtual char* getMotionName() override;

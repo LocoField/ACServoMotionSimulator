@@ -1,14 +1,12 @@
 #pragma once
 
-#include "ACServoMotorSerial.h"
+#include "MotionController.h"
 
 #include <QtWidgets/QDialog>
 
-#include <shared_mutex>
-
 class QVBoxLayout;
 class QTimer;
-class ACServoMotionBase;
+class MotionBase;
 
 class Dialog : public QDialog
 {
@@ -17,9 +15,7 @@ public:
 	virtual ~Dialog();
 
 protected:
-	void motionThread(int index);
 	void initialize();
-	void updateUI(const std::vector<int>& positions);
 
 public:
 	bool loadOption();
@@ -32,26 +28,13 @@ private:
 	QWidget* mainWidget;
 
 	QTimer* motionTimer;
-	std::shared_mutex motionMutex;
-	std::condition_variable_any motionWaiter;
+	MotionController motion;
 
-	std::vector<ACServoMotorSerial> motors;
-	std::vector<int> motionTriggers;
-	std::vector<int> currentPositions;
-
-	std::vector<ACServoMotionBase*> motionSources;
-	ACServoMotionBase* motionSource = nullptr;
-	std::map<QString, QJsonObject> motionOptions;
-
-	int angle = 5000; // difference
-	int width = 500;
-	int height = 1000;
-	int baudRate = 115200;
-	int center = 0;
-	int limit = 0;
-	int numMotors = 0;
 	QString portNames;
-	int sign = 1; // 1 or -1
-	int speed = 1000; // rpm
+	int baudRate = 115200;
+
+	std::vector<MotionBase*> motionSources;
+	MotionBase* motionSource = nullptr;
+	std::map<QString, QJsonObject> motionOptions;
 
 };
