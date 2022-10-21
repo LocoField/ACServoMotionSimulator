@@ -33,7 +33,6 @@ public:
 	static Command trigger(int address, unsigned char index);
 	static Command normal(int address);
 
-	static Command emergency(int address, bool on);
 	static Command power(int address, bool on);
 
 };

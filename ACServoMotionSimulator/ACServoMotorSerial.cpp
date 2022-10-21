@@ -144,11 +144,6 @@ void ACServoMotorSerial::normal()
 	writeAndRead(ACServoMotorHelper::normal(address));
 }
 
-void ACServoMotorSerial::emergency(bool on)
-{
-	writeAndRead(ACServoMotorHelper::emergency(address, on));
-}
-
 void ACServoMotorSerial::power(bool on)
 {
 	writeAndRead(ACServoMotorHelper::power(address, on));

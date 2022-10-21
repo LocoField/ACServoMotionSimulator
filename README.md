@@ -9,6 +9,7 @@
     - pn033 = 1 : origin regression trigger by GOH   
     - pn034 = 4 : origin regression reference point mode (4 or 5)   
     - pn035 = 2 : origin regression origin mode   
+    - pn052 = 7 : emergency on by SigIn1
     - pn076 = 1 : emergency recovery   
     - Pn117 = 1 : internal position instructions   
     
@@ -20,7 +21,7 @@
     
 3. Communication   
     - pn065 = n : communication station number   
-    - pn068 = 67 : control emergency, alarm reset, and servo on by communication   
+    - pn068 = 1 : servo on by communication   
     - pn069 = 32767 : control all functions by communication   
     - pn070 = 32703   
     - pn071 = 32767   

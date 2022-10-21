@@ -332,22 +332,6 @@ Command ACServoMotorHelper::normal(int address)
 	return data;
 }
 
-Command ACServoMotorHelper::emergency(int address, bool on)
-{
-	Command data;
-	data.reserve(8);
-
-	data.insert(data.end(), {
-		(unsigned char)address, 0x06, 0x00, 70, 0x7F,
-	});
-
-	if (on) data.push_back(0xFF);
-	else data.push_back(0xBF);
-
-	calculateCRC(data);
-	return data;
-}
-
 Command ACServoMotorHelper::power(int address, bool on)
 {
 	Command data;

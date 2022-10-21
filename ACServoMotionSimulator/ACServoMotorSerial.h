@@ -31,7 +31,6 @@ public:
 	void trigger(unsigned char index);
 	void normal();
 
-	void emergency(bool on);
 	void power(bool on);
 	void home();
 	void stop();
