@@ -88,6 +88,24 @@ bool ACServoMotorHelper::getParamValue(const Command& data, short& value)
 	return true;
 }
 
+bool ACServoMotorHelper::getTorqueValue(const Command& data, short& torque)
+{
+	if (data.size() != getDataLength(data))
+		return false;
+
+	if (data[1] != 0x03 || data[2] != 0x02) // check command and size
+		return false;
+
+	Command command(data.cbegin(), data.cend() - 2);
+	calculateCRC(command);
+
+	if (command != data)
+		return false;
+
+	torque = (data[3] << 8) | data[4];
+	return true;
+}
+
 bool ACServoMotorHelper::getEncoderValue(const Command& data, int& position, bool& moving)
 {
 	if (data.size() != getDataLength(data))
@@ -137,6 +155,19 @@ Command ACServoMotorHelper::readCycles(int address, unsigned char index)
 	data.insert(data.end(), {
 		(unsigned char)address, 0x03, 0x00, (unsigned char)(120 + index * 2), 0x00, 0x02,
 	}); // Pn120 and Pn121 ~
+
+	calculateCRC(data);
+	return data;
+}
+
+Command ACServoMotorHelper::readTorque(int address)
+{
+	Command data;
+	data.reserve(8);
+
+	data.insert(data.end(), {
+		(unsigned char)address, 0x03, 0x01, 0x72, 0x00, 0x01,
+	}); // Dn002
 
 	calculateCRC(data);
 	return data;

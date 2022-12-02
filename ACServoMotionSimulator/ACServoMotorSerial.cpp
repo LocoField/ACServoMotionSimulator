@@ -115,6 +115,16 @@ bool ACServoMotorSerial::position(int& pos, bool& moving)
 	return true;
 }
 
+bool ACServoMotorSerial::torque(short& torque)
+{
+	auto received = writeAndRead(ACServoMotorHelper::readTorque(address));
+
+	if (ACServoMotorHelper::getTorqueValue(received, torque) == false)
+		return false;
+
+	return true;
+}
+
 bool ACServoMotorSerial::setCycle(int cycle, unsigned char index)
 {
 	auto command = ACServoMotorHelper::setCycle(address, cycle, index);
@@ -136,6 +146,11 @@ bool ACServoMotorSerial::setSpeed(unsigned short speed)
 	writeAndRead(ACServoMotorHelper::setSpeed(address, speed));
 
 	return true;
+}
+
+void ACServoMotorSerial::setTorque(short value)
+{
+	writeAndRead(ACServoMotorHelper::setParam(address, 200, value));
 }
 
 void ACServoMotorSerial::trigger(unsigned char index)

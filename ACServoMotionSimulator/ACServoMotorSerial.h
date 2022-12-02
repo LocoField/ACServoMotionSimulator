@@ -24,10 +24,12 @@ public:
 	bool setParam(unsigned char param, short value);
 
 	bool position(int& pos, bool& moving);
+	bool torque(short& torque);
 
 	bool setCycle(int cycle, unsigned char index);
 	bool setSpeed(unsigned short speed, unsigned char index);
 	bool setSpeed(unsigned short speed);
+	void setTorque(short value);
 
 	void trigger(unsigned char index);
 	void normal();

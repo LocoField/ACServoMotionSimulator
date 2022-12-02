@@ -74,17 +74,20 @@ void Dialog::initialize()
 			{
 				if (checked)
 				{
-					if (motion.connect(portNames.toStdString(), baudRate) == false)
+					if (motion.connect(motionPortNames.toStdString(), baudRate) == false)
 					{
 						buttonMotorConnect->setChecked(false);
 						return;
 					}
+
+					belt.connect(beltPortName.toStdString(), baudRate);
 
 					buttonMotorConnect->setText("Disconnect");
 				}
 				else
 				{
 					motion.disconnect();
+					belt.disconnect();
 
 					buttonMotorConnect->setText("Connect");
 				}
@@ -94,12 +97,24 @@ void Dialog::initialize()
 			{
 				if (checked)
 				{
+					if (belt.isConnected())
+					{
+						belt.power(true);
+						belt.setTorque(beltHomeTorque);
+					}
+
 					motion.start();
 
 					buttonMotorStart->setText("Stop");
 				}
 				else
 				{
+					if (belt.isConnected())
+					{
+						belt.setTorque(0);
+						belt.power(false);
+					}
+
 					motion.stop();
 
 					buttonMotorStart->setText("Start");
@@ -269,11 +284,7 @@ bool Dialog::loadOption()
 			QJsonObject optionObject = doc.object();
 			auto optionList = optionObject.keys();
 
-			if (optionList.contains("default") == false)
-			{
-				retval = false;
-			}
-			else
+			if (optionList.contains("default"))
 			{
 				QJsonObject defaultOption = optionObject["default"].toObject();
 				auto defaultOptionList = defaultOption.keys();
@@ -295,7 +306,7 @@ bool Dialog::loadOption()
 					height = defaultOption["height"].toInt();
 					center = defaultOption["center"].toInt();
 					limit = defaultOption["limit"].toInt();
-					portNames = defaultOption["ports"].toString();
+					motionPortNames = defaultOption["ports"].toString();
 					sign = defaultOption["sign"].toInt();
 					speed = defaultOption["speed"].toInt();
 					step = defaultOption["step"].toInt();
@@ -311,7 +322,26 @@ bool Dialog::loadOption()
 				{
 					motionOptions.insert({ *it, optionObject[*it].toObject() });
 				}
+
+				motion.setMotionSize(width, height);
+				motion.setCenterPosition(center);
+				motion.setLimitPosition(limit);
+				motion.setReverseDirection(sign < 0);
+				motion.setSpeedValue(speed);
+				motion.setStepValue(step);
 			}
+			else
+			{
+				retval = false;
+			}
+
+			if (optionList.contains("belt-tensioner"))
+			{
+				QJsonObject beltOption = optionObject["belt-tensioner"].toObject();
+				beltPortName = beltOption["port"].toString();
+				beltHomeTorque = beltOption["torque"].toInt();
+			}
+
 		}
 
 		loadFile.close();
@@ -322,13 +352,6 @@ bool Dialog::loadOption()
 		printf("ERROR: loadOption() failed.\n");
 		return false;
 	}
-
-	motion.setMotionSize(width, height);
-	motion.setCenterPosition(center);
-	motion.setLimitPosition(limit);
-	motion.setReverseDirection(sign < 0);
-	motion.setSpeedValue(speed);
-	motion.setStepValue(step);
 
 	return true;
 }

@@ -17,10 +17,12 @@ public:
 	static int getDataLength(const Command& data);
 
 	static bool getParamValue(const Command& data, short& value);
+	static bool getTorqueValue(const Command& data, short& torque);
 	static bool getEncoderValue(const Command& data, int& position, bool& moving); // high + low * 10000 bits
 
 	static Command readParam(int address, unsigned char param);
 	static Command readCycles(int address, unsigned char index);
+	static Command readTorque(int address);
 	static Command readEncoder(int address);
 
 	static Command setParam(int address, unsigned char param, short value);

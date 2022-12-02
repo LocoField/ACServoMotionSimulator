@@ -9,5 +9,10 @@
         "sign": 1,
         "speed": 500,
         "step": 5000
+    },
+    "belt-tensioner":
+    {
+        "port": "COM7",
+        "torque": 50
     }
 }
