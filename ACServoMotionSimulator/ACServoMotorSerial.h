@@ -20,13 +20,14 @@ public:
 	virtual size_t write(const std::vector<unsigned char>& data);
 	virtual std::vector<unsigned char> writeAndRead(const std::vector<unsigned char>& data);
 
-	bool paramValue(unsigned char param, short& value);
+	bool readParam(unsigned char param, short& value);
+	bool setParam(unsigned char param, short value);
+
 	bool position(int& pos, bool& moving);
 
 	bool setCycle(int cycle, unsigned char index);
 	bool setSpeed(unsigned short speed, unsigned char index);
 	bool setSpeed(unsigned short speed);
-	void test(short value);
 
 	void trigger(unsigned char index);
 	void normal();

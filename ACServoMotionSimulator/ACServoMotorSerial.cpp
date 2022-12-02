@@ -40,7 +40,7 @@ bool ACServoMotorSerial::connect(const std::string& port, int baudRate)
 	}
 
 	short motionStationNumber = 0;
-	bool paramCheck = paramValue(65, motionStationNumber);
+	bool paramCheck = readParam(65, motionStationNumber);
 
 	if (paramCheck == false || motionStationNumber != address)
 	{
@@ -88,12 +88,19 @@ std::vector<unsigned char> ACServoMotorSerial::writeAndRead(const std::vector<un
 	return received;
 }
 
-bool ACServoMotorSerial::paramValue(unsigned char param, short& value)
+bool ACServoMotorSerial::readParam(unsigned char param, short& value)
 {
 	auto received = writeAndRead(ACServoMotorHelper::readParam(address, param));
 
 	if (ACServoMotorHelper::getParamValue(received, value) == false)
 		return false;
+
+	return true;
+}
+
+bool ACServoMotorSerial::setParam(unsigned char param, short value)
+{
+	auto received = writeAndRead(ACServoMotorHelper::setParam(address, param, value));
 
 	return true;
 }
@@ -127,11 +134,6 @@ bool ACServoMotorSerial::setSpeed(unsigned short speed)
 	writeAndRead(ACServoMotorHelper::setSpeed(address, speed));
 
 	return true;
-}
-
-void ACServoMotorSerial::test(short value)
-{
-	writeAndRead(ACServoMotorHelper::setParam(address, 200, value));
 }
 
 void ACServoMotorSerial::trigger(unsigned char index)
