@@ -117,9 +117,11 @@ bool ACServoMotorSerial::position(int& pos, bool& moving)
 
 bool ACServoMotorSerial::setCycle(int cycle, unsigned char index)
 {
-	writeAndRead(ACServoMotorHelper::setCycle(address, cycle, index));
+	auto command = ACServoMotorHelper::setCycle(address, cycle, index);
+	auto received = writeAndRead(command);
 
-	return true;
+	auto r = std::equal(received.cbegin(), received.cend() - 2, command.cbegin());
+	return r;
 }
 
 bool ACServoMotorSerial::setSpeed(unsigned short speed, unsigned char index)

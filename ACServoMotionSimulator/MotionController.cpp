@@ -201,10 +201,15 @@ bool MotionController::start()
 
 	for (auto& motor : motors)
 	{
-		motor->setCycle(step, 0);
-		motor->setCycle(-step, 1);
-		motor->setCycle(step / 2, 2);
-		motor->setCycle(-step / 2, 3);
+		bool retval = true;
+
+		if (retval) retval = motor->setCycle(step, 0);
+		if (retval) retval = motor->setCycle(-step, 1);
+		if (retval) retval = motor->setCycle(step / 2, 2);
+		if (retval) retval = motor->setCycle(-step / 2, 3);
+
+		if (retval == false)
+			return false;
 	}
 
 	return true;
