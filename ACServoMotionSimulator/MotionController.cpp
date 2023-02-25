@@ -44,7 +44,7 @@ public:
 		p4.z = -(a * p4.x + b * p4.y);
 	}
 
-	void translate(float heave, float sway, float surge)
+	void translate(float sway, float surge, float heave)
 	{
 		float sway_l = 0, sway_r = 0;
 		float surge_f = 0, surge_b = 0;
@@ -249,7 +249,7 @@ void MotionController::executeMotion(const Motion& data)
 
 		PlanePoints pp(width, height);
 		pp.rotate(data.roll, data.pitch);
-		pp.translate(data.heave, data.sway, data.surge);
+		pp.translate(data.sway, data.surge, data.heave);
 		pp.getZPoints(pz1, pz2, pz3, pz4);
 
 		//printf("%d    %d    %d    %d\n\n", pz1, pz2, pz3, pz4);
@@ -260,10 +260,10 @@ void MotionController::executeMotion(const Motion& data)
 		targetPositions[2] -= pz3 * 500;
 		targetPositions[3] -= pz4 * 500;
 
-		targetPositions[0] += data.ll * 500;
-		targetPositions[1] += data.lr * 500;
-		targetPositions[2] += data.rl * 500;
-		targetPositions[3] += data.rr * 500;
+		targetPositions[0] += data.ll * 250;
+		targetPositions[1] += data.lr * 250;
+		targetPositions[2] += data.rl * 250;
+		targetPositions[3] += data.rr * 250;
 	}
 
 

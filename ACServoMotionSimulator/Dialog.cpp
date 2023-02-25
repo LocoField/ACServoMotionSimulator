@@ -43,13 +43,14 @@ void Dialog::initialize()
 
 #ifdef _DEBUG
 		printf("%2.5f    %2.5f    %2.5f\n%2.5f    %2.5f    %2.5f\n%2.5f    %2.5f    %2.5f    %2.5f\n%u\n",
-			data.roll, data.pitch, data.heave,
-			data.yaw, data.sway, data.surge,
+			data.roll, data.pitch, data.yaw,
+			data.sway, data.surge, data.heave,
 			data.ll, data.lr, data.rl, data.rr,
 			GetTickCount());
 #endif
 
 		motion.executeMotion(data);
+		belt.setTorque(beltHomeTorque - data.surge);
 	});
 
 	auto controllerLayout = new QVBoxLayout;

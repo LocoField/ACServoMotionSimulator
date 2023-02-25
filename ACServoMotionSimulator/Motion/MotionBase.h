@@ -8,10 +8,10 @@ struct Motion
 {
 	float roll = 0;
 	float pitch = 0;
-	float heave = 0;
 	float yaw = 0;
 	float sway = 0;
 	float surge = 0;
+	float heave = 0;
 
 	float ll = 0;
 	float lr = 0;

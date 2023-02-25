@@ -111,21 +111,19 @@ bool MotionPCars2::process(void* arg)
 			double y = pDataLocal->mOrientation[1]; // heading
 			double z = pDataLocal->mOrientation[2];
 
-			motion_.roll = (float)(z * 180 / M_PI) * 5;
-			motion_.pitch = (float)(x * 180 / M_PI) * 5;
+			motion_.roll = (float)(z * 180 / M_PI);
+			motion_.pitch = (float)(x * 180 / M_PI);
 
-			// Suspension position
-			motion_.ll = (pDataLocal->mSuspensionTravel[0] - suspensionCenter[0]) * 1000;
-			motion_.lr = (pDataLocal->mSuspensionTravel[1] - suspensionCenter[1]) * 1000;
-			motion_.rl = (pDataLocal->mSuspensionTravel[2] - suspensionCenter[2]) * 1000;
-			motion_.rr = (pDataLocal->mSuspensionTravel[3] - suspensionCenter[3]) * 1000;
+			// Acceleration
+			motion_.surge = pDataLocal->mLocalAcceleration[2];
+			motion_.sway = pDataLocal->mLocalAcceleration[1];
+			motion_.heave = pDataLocal->mLocalAcceleration[0];
 
-			angleFilter(motion_.roll, 15);
-			angleFilter(motion_.pitch, 15);
-			angleFilter(motion_.ll, 15);
-			angleFilter(motion_.lr, 15);
-			angleFilter(motion_.rl, 15);
-			angleFilter(motion_.rr, 15);
+			angleFilter(motion_.roll, 10);
+			angleFilter(motion_.pitch, 10);
+			angleFilter(motion_.sway, 5);
+			angleFilter(motion_.surge, 5);
+			angleFilter(motion_.heave, 5);
 
 			break;
 		}
