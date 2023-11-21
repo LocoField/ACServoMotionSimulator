@@ -1,8 +1,7 @@
 #include "stdafx.h"
 #include "MotionController.h"
-#include "ACServoMotorSerial.h"
 
-#include "Motion/MotionBase.h"
+#include <QtSerialPort/QSerialPort>
 
 class PlanePoints
 {
@@ -81,15 +80,15 @@ protected:
 
 };
 
-
-void MotionController::setStepValue(int step)
+MotionController::MotionController()
 {
-	this->step = step;
+	board = new QSerialPort;
 }
 
-void MotionController::setSpeedValue(int speed)
+MotionController::~MotionController()
 {
-	this->speed = speed;
+	delete board;
+	board = nullptr;
 }
 
 void MotionController::setMotionSize(int width, int height)
@@ -100,133 +99,64 @@ void MotionController::setMotionSize(int width, int height)
 
 void MotionController::setCenterPosition(int center)
 {
-	this->center = center;
+	
 }
 
 void MotionController::setLimitPosition(int limit)
 {
-	this->limit = limit;
+	
 }
 
-void MotionController::setReverseDirection(bool reverse)
+bool MotionController::connect(const std::string& portName, int baudRate)
 {
-	this->sign = reverse ? -1 : 1;
-}
+	board->setPortName(QString::fromStdString(portName));
+	board->setBaudRate(baudRate);
 
-bool MotionController::connect(const std::string& ports, int baudRate)
-{
-	size_t prev = 0, curr = 0;
-
-	std::vector<std::string> portNames;
-
-	while (curr != std::string::npos)
-	{
-		curr = ports.find(';', prev);
-		std::string substring = ports.substr(prev, curr - prev);
-		prev = curr + 1;
-
-		portNames.push_back(substring);
-	}
-
-
-	bool succeed = true;
-
-	for (size_t i = 0; i < portNames.size(); i++)
-	{
-		ACServoMotorSerial* motor = new ACServoMotorSerial;
-		motors.emplace_back(motor);
-
-		motor->setAddress((int)i + 1);
-		succeed = motor->connect(portNames[i], baudRate);
-
-		if (succeed == false)
-		{
-			disconnect();
-			break;
-		}
-	}
-
-	return succeed;
+	return board->open(QIODevice::ReadWrite);
 }
 
 void MotionController::disconnect()
 {
-	for (auto& motor : motors)
-	{
-		motor->disconnect();
-		delete motor;
-	}
-
-	motors.clear();
+	board->close();
 }
 
 bool MotionController::power(bool on)
 {
-	for (auto& motor : motors)
-	{
-		motor->power(on);
+	board->write(QString("power %1\n").arg(on).toLocal8Bit());
+	auto d = board->readAll();
 
-		if (on)
-		{
-			motor->setSpeed(speed, 0);
-			motor->setSpeed(speed, 1);
-			motor->setSpeed(speed / 2, 2);
-			motor->setSpeed(speed / 2, 3);
-
-			motor->home();
-		}
-	}
+#ifdef _DEBUG
+	printf("%s\n", d.constData());
+#endif
 
 	return true;
 }
 
 bool MotionController::start()
 {
-	if (motionTriggers.empty() == false)
-		return false;
-
-	motionTriggers.assign(motors.size(), -1);
-	currentPositions.assign(motors.size(), center);
-
 	power(true);
-	Sleep(1000);
+	Sleep(2000);
 
-	for (auto& motor : motors)
-	{
-		motor->setCycle(center * sign, 0);
+	lastPositions.resize(4);
 
-		motor->trigger(0);
-		motor->normal();
-	}
+	board->write(QString("ready %1\n").arg(true).toLocal8Bit());
+	auto d = board->readAll();
 
-	for (auto& motor : motors)
-	{
-		bool retval = true;
-
-		if (retval) retval = motor->setCycle(step, 0);
-		if (retval) retval = motor->setCycle(-step, 1);
-		if (retval) retval = motor->setCycle(step / 2, 2);
-		if (retval) retval = motor->setCycle(-step / 2, 3);
-
-		if (retval == false)
-			return false;
-	}
+#ifdef _DEBUG
+	printf("%s\n", d.constData());
+#endif
 
 	return true;
 }
 
 bool MotionController::stop()
 {
-	motionTriggers.clear();
-	currentPositions.clear();
+	board->write(QString("ready %1\n").arg(false).toLocal8Bit());
+	auto d = board->readAll();
 
-	for (auto& motor : motors)
-	{
-		motor->setCycle(-center * sign, 0);
-
-		motor->trigger(0);
-		motor->normal();
-	}
+#ifdef _DEBUG
+	printf("%s\n", d.constData());
+#endif
 
 	Sleep(2000);
 	power(false);
@@ -234,91 +164,38 @@ bool MotionController::stop()
 	return true;
 }
 
-void MotionController::executeMotion(const Motion& data)
+void MotionController::motion(const Motion& data)
 {
-	if (motionTriggers.empty())
+	std::vector<int> position(4);
+
+	int pz1, pz2, pz3, pz4;
+
+	PlanePoints pp(width, height);
+	pp.rotate(data.roll, data.pitch);
+	pp.translate(data.sway, data.surge, data.heave);
+	pp.getZPoints(pz1, pz2, pz3, pz4);
+
+	// 625 (one rotation 2500 / 4 mm pitch), but ...
+	position[0] -= pz1 * angleStep;
+	position[1] -= pz2 * angleStep;
+	position[2] -= pz3 * angleStep;
+	position[3] -= pz4 * angleStep;
+
+	position[0] += data.ll * linearStep;
+	position[1] += data.lr * linearStep;
+	position[2] += data.rl * linearStep;
+	position[3] += data.rr * linearStep;
+
+	if (lastPositions == position)
 		return;
 
+	board->write(QString("position %1 %2 %3 %4\n").arg(position[0]).arg(position[1]).arg(position[2]).arg(position[3]).toLocal8Bit());
+	auto d = board->readAll();
 
-	std::vector<int> targetPositions(motors.size(), center);
-	motionTriggers.assign(motors.size(), -1);
+#ifdef _DEBUG
+	printf("%d    %d    %d    %d\n%u\n", position[0], position[1], position[2], position[3], GetTickCount());
+	printf("%s\n", d.constData());
+#endif
 
-	if (motors.size() == 4)
-	{
-		int pz1, pz2, pz3, pz4;
-
-		PlanePoints pp(width, height);
-		pp.rotate(data.roll, data.pitch);
-		pp.translate(data.sway, data.surge, data.heave);
-		pp.getZPoints(pz1, pz2, pz3, pz4);
-
-		//printf("%d    %d    %d    %d\n\n", pz1, pz2, pz3, pz4);
-
-		// 625 (one rotation 2500 / 4 mm pitch), but ...
-		targetPositions[0] -= pz1 * 500;
-		targetPositions[1] -= pz2 * 500;
-		targetPositions[2] -= pz3 * 500;
-		targetPositions[3] -= pz4 * 500;
-
-		targetPositions[0] += data.ll * 250;
-		targetPositions[1] += data.lr * 250;
-		targetPositions[2] += data.rl * 250;
-		targetPositions[3] += data.rr * 250;
-	}
-
-
-	std::thread t[4];
-
-	for (size_t i = 0; i < motors.size(); i++)
-		t[i] = std::thread(std::bind(&MotionController::motionThread, this, i));
-
-	Sleep(1);
-
-	for (size_t i = 0; i < motors.size(); i++)
-	{
-		if (targetPositions[i] < 0 || targetPositions[i] > limit)
-			continue;
-
-		int position = targetPositions[i] - currentPositions[i];
-		int direction = position > 0 ? 1 : -1;
-		int triggerIndex = direction > 0 ? 0 : 1;
-
-		if (abs(position) < step / 2)
-			continue;
-
-		if (abs(position) < step)
-		{
-			step /= 2;
-			triggerIndex += 2;
-		}
-
-		motionTriggers[i] = triggerIndex;
-		currentPositions[i] += (step * direction);
-
-		if (currentPositions[i] < 0 ||
-			currentPositions[i] >= limit)
-		{
-			motionTriggers[i] = -1;
-			currentPositions[i] -= (step * direction);
-		}
-	}
-
-	motionWaiter.notify_all();
-
-	for (size_t i = 0; i < motors.size(); i++)
-		t[i].join();
-}
-
-void MotionController::motionThread(size_t index)
-{
-	std::shared_lock<std::shared_mutex> locker(motionMutex);
-
-	motionWaiter.wait(locker);
-
-	int trigger = motionTriggers[index];
-	if (trigger >= 0)
-	{
-		motors[index]->trigger(motionTriggers[index]);
-		motors[index]->normal();
-	}
+	lastPositions = position;
 }

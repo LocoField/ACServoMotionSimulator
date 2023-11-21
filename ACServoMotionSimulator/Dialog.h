@@ -1,7 +1,6 @@
 #pragma once
 
 #include "MotionController.h"
-#include "ACServoMotorSerial.h"
 
 #include <QtWidgets/QDialog>
 
@@ -29,13 +28,9 @@ private:
 	QWidget* mainWidget;
 
 	QTimer* motionTimer;
-	MotionController motion;
+	MotionController controller;
 
-	ACServoMotorSerial belt;
-	QString beltPortName;
-	int beltHomeTorque = 0;
-
-	QString motionPortNames;
+	QString controllerPortName;
 	int baudRate = 115200;
 
 	std::vector<MotionBase*> motionSources;

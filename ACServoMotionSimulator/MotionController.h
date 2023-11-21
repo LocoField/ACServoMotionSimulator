@@ -1,51 +1,36 @@
 #pragma once
 
-#include <shared_mutex>
+#include "Motion/MotionBase.h"
 
-struct Motion;
-class ACServoMotorSerial;
+class QSerialPort;
 
-class MotionController
+class MotionController final
 {
 public:
-	MotionController() = default;
-	~MotionController() = default;
+	MotionController();
+	~MotionController();
 
 public:
-	void setStepValue(int step);
-	void setSpeedValue(int speed);
 	void setMotionSize(int width, int height);
 	void setCenterPosition(int center);
 	void setLimitPosition(int limit);
-	void setReverseDirection(bool reverse);
 
 public:
-	bool connect(const std::string& ports, int baudRate);
+	bool connect(const std::string& portName, int baudRate);
 	void disconnect();
 	bool power(bool on);
 	bool start();
 	bool stop();
-
-	void executeMotion(const Motion& data);
-
-private:
-	void motionThread(size_t index);
-
-	std::shared_mutex motionMutex;
-	std::condition_variable_any motionWaiter;
+	void motion(const Motion& data);
 
 protected:
-	std::vector<ACServoMotorSerial*> motors;
-	std::vector<int> motionTriggers;
-	std::vector<int> currentPositions;
+	QSerialPort* board = nullptr;
 
-	int step = 0;
-	int speed = 0;
 	int width = 500;
 	int height = 1000;
-	int center = 0;
-	int limit = 0;
-	int sign = 1;
+	int angleStep = 10;
+	int linearStep = 10;
+
+	std::vector<int> lastPositions;
 
 };
-

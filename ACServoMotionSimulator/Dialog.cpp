@@ -7,7 +7,7 @@
 #include "Motion/MotionNoLimits2.h"
 #include "Motion/MotionXPlane11.h"
 
-#define DIALOG_TITLE "LocoField Motion Simulator v2.2"
+#define DIALOG_TITLE "LocoField Motion Simulator v2.3"
 
 Dialog::Dialog()
 {
@@ -49,8 +49,7 @@ void Dialog::initialize()
 			GetTickCount());
 #endif
 
-		motion.executeMotion(data);
-		belt.setTorque(beltHomeTorque - data.surge);
+		controller.motion(data);
 	});
 
 	auto controllerLayout = new QVBoxLayout;
@@ -75,20 +74,17 @@ void Dialog::initialize()
 			{
 				if (checked)
 				{
-					if (motion.connect(motionPortNames.toStdString(), baudRate) == false)
+					if (controller.connect(controllerPortName.toStdString(), baudRate) == false)
 					{
 						buttonMotorConnect->setChecked(false);
 						return;
 					}
 
-					belt.connect(beltPortName.toStdString(), baudRate);
-
 					buttonMotorConnect->setText("Disconnect");
 				}
 				else
 				{
-					motion.disconnect();
-					belt.disconnect();
+					controller.disconnect();
 
 					buttonMotorConnect->setText("Connect");
 				}
@@ -98,25 +94,13 @@ void Dialog::initialize()
 			{
 				if (checked)
 				{
-					if (belt.isConnected())
-					{
-						belt.power(true);
-						belt.setTorque(beltHomeTorque);
-					}
-
-					motion.start();
+					controller.start();
 
 					buttonMotorStart->setText("Stop");
 				}
 				else
 				{
-					if (belt.isConnected())
-					{
-						belt.setTorque(0);
-						belt.power(false);
-					}
-
-					motion.stop();
+					controller.stop();
 
 					buttonMotorStart->setText("Start");
 				}
@@ -221,7 +205,7 @@ void Dialog::initialize()
 
 		connect(actionPowerOff, &QAction::triggered, [this]()
 		{
-			motion.power(false);
+			controller.power(false);
 		});
 
 		menuAction->addAction(actionPowerOff);
@@ -253,15 +237,10 @@ void Dialog::initialize()
 
 bool Dialog::loadOption()
 {
-	int baudRate = 115200;
 	int width = 500;
 	int height = 1000;
 	int center = 0;
 	int limit = 0;
-	int sign = 1; // 1 or -1
-	int speed = 1000; // rpm
-	int step = 5000;
-
 
 	bool retval = true;
 
@@ -294,10 +273,7 @@ bool Dialog::loadOption()
 					defaultOptionList.contains("height") &&
 					defaultOptionList.contains("center") &&
 					defaultOptionList.contains("limit") &&
-					defaultOptionList.contains("ports") &&
-					defaultOptionList.contains("sign") &&
-					defaultOptionList.contains("speed") &&
-					defaultOptionList.contains("step"))
+					defaultOptionList.contains("port"))
 				{
 					auto itBaudRate = defaultOption.find("baudRate");
 					if (itBaudRate != defaultOption.end())
@@ -307,10 +283,7 @@ bool Dialog::loadOption()
 					height = defaultOption["height"].toInt();
 					center = defaultOption["center"].toInt();
 					limit = defaultOption["limit"].toInt();
-					motionPortNames = defaultOption["ports"].toString();
-					sign = defaultOption["sign"].toInt();
-					speed = defaultOption["speed"].toInt();
-					step = defaultOption["step"].toInt();
+					controllerPortName = defaultOption["port"].toString();
 				}
 				else
 				{
@@ -324,25 +297,14 @@ bool Dialog::loadOption()
 					motionOptions.insert({ *it, optionObject[*it].toObject() });
 				}
 
-				motion.setMotionSize(width, height);
-				motion.setCenterPosition(center);
-				motion.setLimitPosition(limit);
-				motion.setReverseDirection(sign < 0);
-				motion.setSpeedValue(speed);
-				motion.setStepValue(step);
+				controller.setMotionSize(width, height);
+				controller.setCenterPosition(center);
+				controller.setLimitPosition(limit);
 			}
 			else
 			{
 				retval = false;
 			}
-
-			if (optionList.contains("belt-tensioner"))
-			{
-				QJsonObject beltOption = optionObject["belt-tensioner"].toObject();
-				beltPortName = beltOption["port"].toString();
-				beltHomeTorque = beltOption["torque"].toInt();
-			}
-
 		}
 
 		loadFile.close();

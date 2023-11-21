@@ -3,16 +3,8 @@
     {
         "width": 500,
         "height": 1000,
-        "center": 100000,
-        "limit": 250000,
-        "ports": "COM21;COM22;COM23;COM24",
-        "sign": 1,
-        "speed": 500,
-        "step": 5000
-    },
-    "belt-tensioner":
-    {
-        "port": "COM7",
-        "torque": 50
+        "center": 5000,
+        "limit": 10000,
+        "port": "COM6"
     }
 }
