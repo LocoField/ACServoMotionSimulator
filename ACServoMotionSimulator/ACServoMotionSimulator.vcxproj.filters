@@ -17,6 +17,9 @@
       <Filter>Motion</Filter>
     </ClCompile>
     <ClCompile Include="MotionController.cpp" />
+    <ClCompile Include="Motion\MotionHotas4.cpp">
+      <Filter>Motion</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Dialog.h" />
@@ -40,6 +43,9 @@
       <Filter>Motion</Filter>
     </ClInclude>
     <ClInclude Include="MotionController.h" />
+    <ClInclude Include="Motion\MotionHotas4.h">
+      <Filter>Motion</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Motion">
