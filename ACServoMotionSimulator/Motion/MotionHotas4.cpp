@@ -45,8 +45,8 @@ bool MotionHotas4::process(void* arg)
 	x -= 0x1FF;
 	y -= 0x1FF;
 
-	motion_.roll = (x / 0x3FF) * 10;
-	motion_.pitch = (y / 0x3FF) * 10;
+	motion_.roll = (x / 0x3FF) * 30;
+	motion_.pitch = (y / 0x3FF) * 30;
 
 	return true;
 }
