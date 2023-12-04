@@ -4,6 +4,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ACServoMotionSimulator", "ACServoMotionSimulator\ACServoMotionSimulator.vcxproj", "{9C53208D-B68B-46E6-BC65-AFD33994AAC3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4C3D4FF0-5F52-4226-A3FB-2E4D557F9411} = {4C3D4FF0-5F52-4226-A3FB-2E4D557F9411}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "USBPcapHelper", "USBPcapHelper\USBPcapHelper.vcxproj", "{4C3D4FF0-5F52-4226-A3FB-2E4D557F9411}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +20,10 @@ Global
 		{9C53208D-B68B-46E6-BC65-AFD33994AAC3}.Debug|x64.Build.0 = Debug|x64
 		{9C53208D-B68B-46E6-BC65-AFD33994AAC3}.Release|x64.ActiveCfg = Release|x64
 		{9C53208D-B68B-46E6-BC65-AFD33994AAC3}.Release|x64.Build.0 = Release|x64
+		{4C3D4FF0-5F52-4226-A3FB-2E4D557F9411}.Debug|x64.ActiveCfg = Debug|x64
+		{4C3D4FF0-5F52-4226-A3FB-2E4D557F9411}.Debug|x64.Build.0 = Debug|x64
+		{4C3D4FF0-5F52-4226-A3FB-2E4D557F9411}.Release|x64.ActiveCfg = Release|x64
+		{4C3D4FF0-5F52-4226-A3FB-2E4D557F9411}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -3,6 +3,7 @@
 
 #include "Motion/MotionBase.h"
 #include "Motion/MotionKeyboard.h"
+#include "Motion/MotionHotas4.h"
 #include "Motion/MotionPCars2.h"
 #include "Motion/MotionNoLimits2.h"
 #include "Motion/MotionXPlane11.h"
@@ -337,6 +338,11 @@ void Dialog::addMotionModules()
 		installEventFilter(motionKeyboard); // for receiving QKeyEvent
 
 		addModule(motionKeyboard);
+	}
+
+	MotionHotas4* motionHotas4 = new MotionHotas4;
+	{
+		addModule(motionHotas4);
 	}
 
 	MotionPCars2* motionPCars2 = new MotionPCars2;

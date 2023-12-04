@@ -1,0 +1,3 @@
+[submodule "USBPcapHelper"]
+	path = USBPcapHelper
+	url = https://github.com/LocoField/USBPcapHelper
