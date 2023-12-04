@@ -50,6 +50,7 @@ void Dialog::initialize()
 #endif
 
 		controller.motion(data);
+		Sleep(30);
 	});
 
 	auto controllerLayout = new QVBoxLayout;
