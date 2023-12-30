@@ -17,6 +17,8 @@ struct Hotas4Data
 };
 #pragma pack(pop)
 
+constexpr int angle = 15;
+
 char* MotionHotas4::getMotionName()
 {
 	return "Hotas 4";
@@ -45,8 +47,8 @@ bool MotionHotas4::process(void* arg)
 	x -= 0x1FF;
 	y -= 0x1FF;
 
-	motion_.roll = (x / 0x3FF) * 30;
-	motion_.pitch = (y / 0x3FF) * 30;
+	motion_.roll = (x / 0x3FF) * angle;
+	motion_.pitch = (y / 0x3FF) * angle;
 
 	return true;
 }

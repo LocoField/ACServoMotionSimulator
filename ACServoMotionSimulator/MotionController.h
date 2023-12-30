@@ -22,6 +22,7 @@ public:
 	bool start();
 	bool stop();
 	void motion(const Motion& data);
+	bool smooth(int step, int period);
 
 protected:
 	QSerialPort* board = nullptr;

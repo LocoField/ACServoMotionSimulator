@@ -199,3 +199,15 @@ void MotionController::motion(const Motion& data)
 
 	lastPositions = position;
 }
+
+bool MotionController::smooth(int step, int period)
+{
+	board->write(QString("smooth %1 %2\n").arg(step).arg(period).toLocal8Bit());
+	auto d = board->readAll();
+
+#ifdef _DEBUG
+	printf("%s\n", d.constData());
+#endif
+
+	return true;
+}

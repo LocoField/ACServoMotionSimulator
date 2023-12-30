@@ -155,6 +155,10 @@ void Dialog::initialize()
 						QJsonObject optionObject = motionOptions[motionName];
 
 						// change options for motions
+						int step = optionObject["smooth_step"].toInt();
+						int period = optionObject["smooth_period"].toInt();
+
+						controller.smooth(step, period);
 					}
 
 					motionTimer->start();
